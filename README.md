@@ -2,6 +2,8 @@
 
 A Python-based smart home automation system that monitors sensors and controls devices using MQTT protocol.
 
+![smartHouseWorkflow](./smartHouseWorkflow.png)
+
 ## Project Scope
 
 This system provides real-time monitoring and automation for smart home devices:
