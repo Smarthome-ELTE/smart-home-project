@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.sqlite3
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# VSCode / IDEs
+.vscode/
+.idea/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Logs and local data
+*.log
+*.csv
+*.json
+
+# Build and dist
+build/
+dist/
+*.egg-info/
+
+# Tkinter / assets
+assets/temp/
