@@ -22,6 +22,7 @@ Thumbs.db
 *.log
 *.csv
 *.json
+*.db
 
 # Build and dist
 build/
