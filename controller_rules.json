@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Increase temperature",
+    "trigger": {
+      "topic": "encyclopedia/temperature",
+      "triggers": [
+        {
+          "key": "temperature",
+          "value": 14
+        },
+        {
+          "key": "humidity",
+          "value": 25
+        }
+      ]
+    },
+    "actions": [
+      {
+        "topic": "thermostat/command/increase",
+        "payload": {
+          "temperature": 22
+        },
+        "qos": 1
+      }
+    ]
+  }
+]

@@ -1,6 +1,7 @@
+from time import sleep
+
 from controller import Controller
 import paho.mqtt.client as paho
-
 
 def main():
     controller = Controller(client_id='Controller', protocol=paho.MQTTv5)
@@ -9,11 +10,11 @@ def main():
 
     controller.subscribe(topic="encyclopedia/#", qos=1)
 
-    controller.start()
+    controller.start()  # needed to set up subscriptions before the messages below are sent
 
-    controller.publish(topic="encyclopedia/temperature", payload="hot", qos=1)
-    controller.publish(topic="encyclopedia/temperature", payload="cold", qos=1)
-    controller.publish(topic="encyclopedia/temperature", payload="mild", qos=1)
+    sleep(1)
+
+    controller.publish(topic="encyclopedia/temperature", payload="{\"temperature\" : 14, \"humidity\" : 25}", qos=1)
 
     controller.stop()
 
