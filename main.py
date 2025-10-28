@@ -1,7 +1,8 @@
 from time import sleep
 
-from controller import Controller
+from controller import Controller, RuleBuilder
 import paho.mqtt.client as paho
+
 
 def main():
     controller = Controller(client_id='Controller', protocol=paho.MQTTv5)
@@ -15,6 +16,18 @@ def main():
     sleep(1)
 
     controller.publish(topic="encyclopedia/temperature", payload="{\"temperature\" : 14, \"humidity\" : 25}", qos=1)
+
+    rule = (RuleBuilder("added rule")
+            .add_trigger("encyclopedia/temperature").add_trigger_condition("temperature", 25)
+            .add_action(topic="encyclopedia/humidity", qos=1, payload="{\"humidity\" : 25}")
+            .build())
+
+    controller.add_rule(rule)
+
+    controller.publish(topic="encyclopedia/temperature", payload="{\"temperature\" : 25}", qos=1)
+
+    sleep(1)
+    controller.delete_rule("added rule")
 
     controller.stop()
 

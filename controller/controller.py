@@ -8,7 +8,7 @@ def is_rule_valid(rule, msg):
         return False
     is_triggers_valid = True
     msg_payload = json.loads(msg.payload)
-    for trigger in rule["triggers"]:
+    for trigger in rule["conditions"]:
         if trigger['key'] in msg_payload and msg_payload[trigger['key']] == trigger['value']:
             is_triggers_valid = is_triggers_valid and True
         else:
@@ -73,3 +73,13 @@ class Controller:
     def save_rules(self):
         with open('controller_rules.json', 'w') as json_file:
             json_file.write(json.dumps(self.rules))
+
+    def add_rule(self, rule):
+        self.rules.append(rule)
+
+    def delete_rule(self, rule_name):
+        rule_to_delete = None
+        for rule in self.rules:
+            if rule["name"] == rule_name:
+                rule_to_delete = rule
+        if rule_to_delete is not None: self.rules.remove(rule_to_delete)

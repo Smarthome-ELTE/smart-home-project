@@ -3,7 +3,7 @@
     "name": "Increase temperature",
     "trigger": {
       "topic": "encyclopedia/temperature",
-      "triggers": [
+      "conditions": [
         {
           "key": "temperature",
           "value": 14
