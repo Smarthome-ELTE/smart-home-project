@@ -9,10 +9,7 @@ def is_rule_valid(rule, msg):
     is_triggers_valid = True
     msg_payload = json.loads(msg.payload)
     for trigger in rule["conditions"]:
-        if trigger['key'] in msg_payload and msg_payload[trigger['key']] == trigger['value']:
-            is_triggers_valid = is_triggers_valid and True
-        else:
-            is_triggers_valid = is_triggers_valid and False
+       is_triggers_valid = is_triggers_valid and (trigger['key'] in msg_payload and msg_payload[trigger['key']] == trigger['value'])
     return is_triggers_valid
 
 
@@ -27,7 +24,7 @@ class Controller:
             print("CONNACK received with code " + str(rc))
 
         def on_publish(client, userdata, mid, properties=None):
-            print("Piblished mid: " + str(mid))
+            print("Published mid: " + str(mid))
 
         def on_subscribe(client, userdata, mid, granted_qos, properties=None):
             print("Subscribed: " + str(mid) + " " + str(granted_qos))
