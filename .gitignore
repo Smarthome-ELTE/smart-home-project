@@ -24,6 +24,7 @@ Thumbs.db
 *.json
 *.db
 
+
 # Build and dist
 build/
 dist/
