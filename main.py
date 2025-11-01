@@ -1,30 +1,35 @@
-import os
-from monitor.db.database import MonitorDatabase
+from time import sleep
 
-
-def test_database():
-    """Test MonitorDatabase functionality without affecting real data."""
-    test_db_path = os.path.join("monitor", "db", "smart_home_monitor_test.db")
-    db = MonitorDatabase(db_path=test_db_path)
-
-    # Clear previous test events
-    cursor = db.conn.cursor()
-    cursor.execute("DELETE FROM events")
-    db.conn.commit()
-
-    # Log some test data
-    db.log_event("light_sensor", 1, "test/topic", {"sensor": "light", "value": 22.5})
-    db.log_event("water_valve", 2, "test/topic", {"sensor": "water", "value": 20})
-
-    # Fetch and print events
-    print("Recent test events:")
-    for event in db.get_recent_events():
-        print(event)
+from controller import Controller, RuleBuilder
+import paho.mqtt.client as paho
 
 
 def main():
-    print("Main execution started.")
-    test_database()
+    controller = Controller(client_id='Controller', protocol=paho.MQTTv5)
+    controller.connect(host="910e146c7f1f4c0fa6799235de0cd0fe.s1.eu.hivemq.cloud", port=8883,
+                       username="main_connection", password="dycrax-3ruzdU")
+
+    controller.subscribe(topic="encyclopedia/#", qos=1)
+
+    controller.start()  # needed to set up subscriptions before the messages below are sent
+
+    sleep(1)
+
+    controller.publish(topic="encyclopedia/temperature", payload="{\"temperature\" : 14, \"humidity\" : 25}", qos=1)
+
+    rule = (RuleBuilder("added rule")
+            .add_trigger("encyclopedia/temperature").add_trigger_condition("temperature", 25)
+            .add_action(topic="encyclopedia/humidity", qos=1, payload="{\"humidity\" : 25}")
+            .build())
+
+    controller.add_rule(rule)
+
+    controller.publish(topic="encyclopedia/temperature", payload="{\"temperature\" : 25}", qos=1)
+
+    sleep(1)
+    controller.delete_rule("added rule")
+
+    controller.stop()
 
 
 if __name__ == "__main__":
