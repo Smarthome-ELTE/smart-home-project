@@ -21,6 +21,9 @@ Thumbs.db
 # Logs and local data
 *.log
 *.csv
+*.json
+*.db
+
 
 # Build and dist
 build/
