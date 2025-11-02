@@ -1,3 +1,4 @@
+import json
 import tkinter as tk
 from tkinter import ttk
 from monitor.db.database import MonitorDatabase
@@ -60,7 +61,23 @@ class MonitorGUI(ttk.Frame):
         
         # Populate treeview
         for event in events:
-            event_id, source_type, source_id, topic, payload, timestamp = event
+            event_id, source_type, source_id, payload, timestamp = event
+
+            if isinstance(payload, str):
+                payload = json.loads(payload)
+                if not isinstance(payload, dict):
+                    print(f"⚠️ Skipping event {event_id}: payload is not JSON.")
+                    continue
+
+            if source_type == 'sensor':
+                category = self.db.get_sensor_category(source_id)
+            elif source_type == 'device':
+                category = self.db.get_device_category(source_id)
+            else:
+                category = "unknown"
+
+            topic = f"{category}/{payload.get('action', 'none')}"
+
             # Truncate payload if too long
             payload_short = payload[:40] + "..." if len(payload) > 40 else payload
             # Truncate timestamp to just date and time
