@@ -19,11 +19,11 @@ class MonitorDatabase:
         
         CREATE TABLE IF NOT EXISTS sensors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,   
-            name TEXT NOT NULL,                             -- User friendly name for GUI, e.g.: 'Living Room Temperature'             
-            type TEXT NOT NULL,                             -- Sensor category, e.q.: 'Temperature', 'Light', 'Gas', 'Water'         
-            data_topic TEXT UNIQUE NOT NULL,                -- The unique 'address' this sensor sends data to, e.g.: 'smarthome/living_room/temperature'                                                   
-            last_payload TEXT,                              -- A *cache* of the last JSON data from this sensor, e.g.: '{"value": 21.5}'                                                       
-            last_update TIMESTAMP                            -- The date and time 'last_payload' was updated.         
+            name TEXT NOT NULL,                             -- User friendly name for GUI, e.g.: 'Living Room Temperature'      
+            category TEXT NOT NULL,                         -- Sensor category, e.q.: 'temperature', 'light', 'gas', 'water' 
+            type TEXT NOT NULL,                             -- Sensor type, e.q.: 'Thermometer', 'Hygrometer'                                                        
+            last_payload TEXT,                              -- Cached JSON of the most recent data from this sensor, e.g.: '{"value": 21.5}'                                                       
+            last_update TIMESTAMP                           -- The date and time 'last_payload' was updated.         
         );
 
         /* Devices */
@@ -31,10 +31,9 @@ class MonitorDatabase:
         CREATE TABLE IF NOT EXISTS devices (
             id INTEGER PRIMARY KEY AUTOINCREMENT,   
             name TEXT NOT NULL,                             -- User friendly name for GUI, e.g.: 'Main Heater'
-            type TEXT NOT NULL,                             -- Device category, e.g., 'Smart bulb', 'Heater'
-            status_topic TEXT UNIQUE NOT NULL,              -- The unique 'address' this device sends its *current_status* to, e.g.: 'smarthome/main_heater/status'
-            command_topic TEXT UNIQUE NOT NULL,             -- The unique 'address' the Controller sends *commands* to, e.g.: 'smarthome/main_heater/set'
-            current_status TEXT,                            -- A *cache* of the last JSON status received from 'status_topic', e.g.: '{"state": "on", "mode": "auto"}' */
+            category TEXT NOT NULL,                         -- Device category, e.q.: 'temperature', 'light', 'gas', 'water' 
+            type TEXT NOT NULL,                             -- Device type, e.q.: 'Heater', 'Plug', 'Lightbulb'                 
+            current_status TEXT,                            -- Cached JSON of the most recent device state, e.g.: '{"state": "on", "mode": "auto"}'
             last_update TIMESTAMP                           -- The date and time 'current_status' was updated.
         );
 
@@ -44,7 +43,6 @@ class MonitorDatabase:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             source_type TEXT NOT NULL,                      -- Specifies which table the 'source_id' refers to, e.g.: 'sensor' or 'device' 
             source_id INTEGER NOT NULL,                     -- The 'id' from either the 'sensors' or 'devices' table that this event came from
-            topic TEXT NOT NULL,                            -- The MQTT topic (address) the message was published on, e.g.: 'smarthome/living_room/temperature'
             payload TEXT NOT NULL,                          -- The full JSON data exactly as it was received, e.g.: '{"value": 21.5, "unit": "C"}' 
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP    -- The date and time this event was saved to the database. (Automatically set by SQLite) 
         );      
@@ -70,15 +68,27 @@ class MonitorDatabase:
         """)
         self.conn.commit()
 
-    def log_event(self, source_type, source_id, topic, payload_json):
+    def log_event(self, source_type, source_id, payload_json):
         cursor = self.conn.cursor()
         cursor.execute("""
-            INSERT INTO events (source_type, source_id, topic, payload)
-            VALUES (?, ?, ?, ?)
-        """, (source_type, source_id, topic, json.dumps(payload_json)))
+            INSERT INTO events (source_type, source_id, payload)
+            VALUES (?, ?, ?)
+        """, (source_type, source_id, json.dumps(payload_json)))
         self.conn.commit()
 
     def get_recent_events(self, limit=50):
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM events ORDER BY timestamp DESC LIMIT ?", (limit,))
         return cursor.fetchall()
+
+    def get_sensor_category(self, sensor_id):
+        cur = self.conn.cursor()
+        cur.execute("SELECT category FROM sensors WHERE id=?", (sensor_id,))
+        row = cur.fetchone()
+        return row[0] if row else "unknown"
+
+    def get_device_category(self, device_id):
+        cur = self.conn.cursor()
+        cur.execute("SELECT category FROM devices WHERE id=?", (device_id,))
+        row = cur.fetchone()
+        return row[0] if row else "unknown"
