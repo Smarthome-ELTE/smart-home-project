@@ -1,6 +1,7 @@
 from time import sleep
 
 from controller import Controller, RuleBuilder
+from wireframe import start_gui
 import paho.mqtt.client as paho
 
 
@@ -34,3 +35,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    start_gui()
+    
