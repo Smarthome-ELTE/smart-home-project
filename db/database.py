@@ -4,10 +4,10 @@ import os
 import sqlite3
 
 
-class MonitorDatabase:
+class Database:
     def __init__(self, db_path=None):
         if db_path is None:
-            db_path = os.path.join("monitor", "db", "smart_home_monitor.db")
+            db_path = os.path.join("db", "smart_home_monitor.db")
         self.conn = sqlite3.connect(db_path)
         self.create_tables()
 
@@ -92,3 +92,11 @@ class MonitorDatabase:
         cur.execute("SELECT category FROM devices WHERE id=?", (device_id,))
         row = cur.fetchone()
         return row[0] if row else "unknown"
+
+    def add_trigger(self, name, sensor_id, condition, device_id, action_payload, enabled):
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            INSERT INTO triggers (name, sensor_id, condition, device_id, action_payload, enabled)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (name, sensor_id, json.dumps(condition), device_id, json.dumps(action_payload), enabled))
+        self.conn.commit()
