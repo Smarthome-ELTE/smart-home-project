@@ -97,9 +97,11 @@ class Database:
         cursor = self.conn.cursor()
         cursor.execute("""
             INSERT INTO triggers (name, sensor_id, condition, device_id, action_payload)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?);
         """, (name, sensor_id, json.dumps(condition), device_id, json.dumps(action_payload)))
+        trigger_id = cursor.lastrowid
         self.conn.commit()
+        return trigger_id
 
     def log_trigger(self, trigger_id, timestamp):
         cursor = self.conn.cursor()

@@ -1,9 +1,11 @@
-from database import MonitorDatabase
+import datetime
+
+from database import Database
 import time
 
 
 # Initialize database
-db = MonitorDatabase()
+db = Database()
 
 print("Clearing previous data...")
 
@@ -82,6 +84,14 @@ for i in range(5):
     db.log_event('device', device_id_2, {'state': 'on', 'brightness': 80 + i * 5, 'action': 'get'})
     time.sleep(0.05)
 
+db.conn.commit()
+
+print("Adding triggers...")
+condition = [{"key": "temperature", "value": 14}, {"key": "humidity", "value": 25}]
+action_payload = {"temperature": 22}
+
+trigger_id_1 = db.add_trigger("Increase temperature", sensor_id_1, condition, device_id_1, action_payload)
+db.log_trigger(str(trigger_id_1), datetime.datetime.now())
 db.conn.commit()
 
 print(f"\n✅ Done! Added {len(db.get_recent_events())} total events")
