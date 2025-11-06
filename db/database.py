@@ -93,10 +93,32 @@ class Database:
         row = cur.fetchone()
         return row[0] if row else "unknown"
 
-    def add_trigger(self, name, sensor_id, condition, device_id, action_payload, enabled):
+    def add_trigger(self, name, sensor_id, condition, device_id, action_payload):
         cursor = self.conn.cursor()
         cursor.execute("""
-            INSERT INTO triggers (name, sensor_id, condition, device_id, action_payload, enabled)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (name, sensor_id, json.dumps(condition), device_id, json.dumps(action_payload), enabled))
+            INSERT INTO triggers (name, sensor_id, condition, device_id, action_payload)
+            VALUES (?, ?, ?, ?, ?)
+        """, (name, sensor_id, json.dumps(condition), device_id, json.dumps(action_payload)))
         self.conn.commit()
+
+    def log_trigger(self, trigger_id, timestamp):
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            UPDATE triggers
+            SET last_triggered= ?
+            WHERE id= ?
+        """, (timestamp, trigger_id))
+        self.conn.commit()
+
+    def delete_trigger(self, trigger_id):
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            DELETE FROM triggers
+            WHERE id= ?
+        """, (trigger_id,))
+        self.conn.commit()
+
+    def get_all_triggers(self):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM triggers DESC")
+        return cursor.fetchall()
