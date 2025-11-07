@@ -5,9 +5,10 @@ from paho import mqtt
 import json
 
 from db import Database
+from db.add_dummy_data import trigger_id_1
 
 
-def is_rule_valid(trigger_condition, msg):
+def is_trigger_valid(trigger_condition, msg):
     if trigger_condition["topic"] != msg.topic:
         return False
     msg_payload = json.loads(msg.payload)
@@ -45,7 +46,7 @@ class Controller:
             print("Received message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
             enabled_triggers = filter(lambda tr: tr["enabled"] > 0, self.__triggers)
             for trigger in enabled_triggers:
-                if is_rule_valid(trigger["condition"], msg):
+                if is_trigger_valid(trigger["condition"], msg):
                     print("Running trigger_condition: " + trigger["name"])
                     self.__db.log_trigger(trigger["id"], datetime.datetime.now())
                     for action in trigger["actions"]:
@@ -68,7 +69,7 @@ class Controller:
 
     def start(self):
         self.__client.loop_start()
-        self.load_rules()
+        self.load_triggers()
 
     def stop(self):
         self.__client.loop_stop()
@@ -79,7 +80,7 @@ class Controller:
     def publish(self, topic, payload, qos):
         self.__client.publish(topic, payload, qos)
 
-    def load_rules(self):
+    def load_triggers(self):
         db_triggers = self.__db.get_all_triggers()
         for db_trigger in db_triggers:
             trigger = {
@@ -101,7 +102,7 @@ class Controller:
             }
             self.__triggers.append(trigger)
 
-    def add_rule(self, name, sensor_id, conditions, device_id, action_payload):
+    def add_trigger(self, name, sensor_id, conditions, device_id, action_payload):
         trigger_id = self.__db.add_trigger(name, sensor_id, conditions, device_id, action_payload)
         trigger = {
             "id": trigger_id,
@@ -122,13 +123,13 @@ class Controller:
         }
         self.__triggers.append(trigger)
 
-    def delete_rule(self, trigger_id):
+    def delete_trigger(self, trigger_id):
         self.__db.delete_trigger(trigger_id)
-        rule_to_delete = None
-        for rule in self.__triggers:
-            if rule["id"] == trigger_id:
-                rule_to_delete = rule
-        if rule_to_delete is not None: self.__triggers.remove(rule_to_delete)
+        trigger_to_delete = None
+        for trigger in self.__triggers:
+            if trigger["id"] == trigger_id:
+                trigger_to_delete = trigger
+        if trigger_to_delete is not None: self.__triggers.remove(trigger_to_delete)
 
     def switch_trigger(self, trigger_id):
         for trigger in self.__triggers:
