@@ -59,6 +59,10 @@ class Controller:
         self.client.on_publish = on_publish
         self.client.on_message = on_message
 
+        categories = set(map(lambda cat_tuple: cat_tuple[0], self.db.get_all_sensor_categories()))
+        for category in categories:
+            self.client.subscribe(category + "/get", 1)
+
     def connect(self, host, port, username, password):
         self.client.username_pw_set(username, password)
         self.client.connect(host, port)

@@ -133,3 +133,8 @@ class Database:
                     WHERE id= ?
                 """, (target_state, trigger_id))
         self.conn.commit()
+
+    def get_all_sensor_categories(self):
+        cursor = self.conn.cursor()
+        cursor.execute("""SELECT category FROM sensors;""")
+        return cursor.fetchall()
