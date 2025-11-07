@@ -26,11 +26,11 @@ def is_rule_valid(trigger_condition, msg):
 
 class Controller:
     def __init__(self, client_id, protocol, db_path=None):
-        self.db = Database(db_path=db_path)
-        self.client = paho.Client(client_id=client_id, protocol=protocol, userdata=None)
-        self.client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+        self.__db = Database(db_path=db_path)
+        self.__client = paho.Client(client_id=client_id, protocol=protocol, userdata=None)
+        self.__client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
 
-        self.triggers = []
+        self.__triggers = []
 
         def on_connect(client, userdata, flags, rc, properties=None):
             print("CONNACK received with code " + str(rc))
@@ -43,97 +43,96 @@ class Controller:
 
         def on_message(client, userdata, msg):
             print("Received message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
-            enabled_triggers = filter(lambda tr: tr["enabled"] > 0, self.triggers)
+            enabled_triggers = filter(lambda tr: tr["enabled"] > 0, self.__triggers)
             for trigger in enabled_triggers:
                 if is_rule_valid(trigger["condition"], msg):
                     print("Running trigger_condition: " + trigger["name"])
-                    self.db.log_trigger(trigger["id"], datetime.datetime.now())
+                    self.__db.log_trigger(trigger["id"], datetime.datetime.now())
                     for action in trigger["actions"]:
                         self.publish(action["topic"], json.dumps(action["payload"]), action["qos"])
                 else:
                     print("Rule " + trigger["name"] + " not valid")
 
+        self.__client.on_connect = on_connect
+        self.__client.on_subscribe = on_subscribe
+        self.__client.on_publish = on_publish
+        self.__client.on_message = on_message
 
-        self.client.on_connect = on_connect
-        self.client.on_subscribe = on_subscribe
-        self.client.on_publish = on_publish
-        self.client.on_message = on_message
-
-        categories = set(map(lambda cat_tuple: cat_tuple[0], self.db.get_all_sensor_categories()))
+        categories = set(map(lambda cat_tuple: cat_tuple[0], self.__db.get_all_sensor_categories()))
         for category in categories:
-            self.client.subscribe(category + "/get", 1)
+            self.__client.subscribe(category + "/get", 1)
 
     def connect(self, host, port, username, password):
-        self.client.username_pw_set(username, password)
-        self.client.connect(host, port)
+        self.__client.username_pw_set(username, password)
+        self.__client.connect(host, port)
 
     def start(self):
-        self.client.loop_start()
+        self.__client.loop_start()
         self.load_rules()
 
     def stop(self):
-        self.client.loop_stop()
+        self.__client.loop_stop()
 
     def subscribe(self, topic, qos):
-        self.client.subscribe(topic, qos)
+        self.__client.subscribe(topic, qos)
 
     def publish(self, topic, payload, qos):
-        self.client.publish(topic, payload, qos)
+        self.__client.publish(topic, payload, qos)
 
     def load_rules(self):
-        db_triggers = self.db.get_all_triggers()
+        db_triggers = self.__db.get_all_triggers()
         for db_trigger in db_triggers:
             trigger = {
                 "id": int(db_trigger[0]),
                 "name": db_trigger[1],
                 "condition": {
                     "sensor_id": int(db_trigger[2]),
-                    "topic": self.db.get_sensor_category(int(db_trigger[2])) + "/get",
+                    "topic": self.__db.get_sensor_category(int(db_trigger[2])) + "/get",
                     "conditions": json.loads(db_trigger[3]),
                 },
                 "actions": [
                     {
-                        "topic": self.db.get_device_category(int(db_trigger[4])) + "/send",
+                        "topic": self.__db.get_device_category(int(db_trigger[4])) + "/send",
                         "payload": {"device_id": int(db_trigger[4])} | json.loads(db_trigger[5]),
                         "qos": 1
                     }
                 ],
                 "enabled": int(db_trigger[6])
             }
-            self.triggers.append(trigger)
+            self.__triggers.append(trigger)
 
     def add_rule(self, name, sensor_id, conditions, device_id, action_payload):
-        trigger_id = self.db.add_trigger(name, sensor_id, conditions, device_id, action_payload)
+        trigger_id = self.__db.add_trigger(name, sensor_id, conditions, device_id, action_payload)
         trigger = {
             "id": trigger_id,
             "name": name,
             "condition": {
                 "sensor_id": sensor_id,
-                "topic": self.db.get_sensor_category(sensor_id) + "/get",
+                "topic": self.__db.get_sensor_category(sensor_id) + "/get",
                 "conditions": conditions,
             },
             "actions": [
                 {
-                    "topic": self.db.get_device_category(device_id) + "/send",
+                    "topic": self.__db.get_device_category(device_id) + "/send",
                     "payload": {"device_id": device_id} | action_payload,
                     "qos": 1
                 }
             ],
             "enabled": 1
         }
-        self.triggers.append(trigger)
+        self.__triggers.append(trigger)
 
     def delete_rule(self, trigger_id):
-        self.db.delete_trigger(trigger_id)
+        self.__db.delete_trigger(trigger_id)
         rule_to_delete = None
-        for rule in self.triggers:
+        for rule in self.__triggers:
             if rule["id"] == trigger_id:
                 rule_to_delete = rule
-        if rule_to_delete is not None: self.triggers.remove(rule_to_delete)
+        if rule_to_delete is not None: self.__triggers.remove(rule_to_delete)
 
     def switch_trigger(self, trigger_id):
-        for trigger in self.triggers:
+        for trigger in self.__triggers:
             if trigger["id"] == trigger_id:
                 target_state = (trigger["enabled"] + 1) % 2
                 trigger["enabled"] = target_state
-                self.db.switch_trigger(trigger_id, target_state)
+                self.__db.switch_trigger(trigger_id, target_state)
