@@ -87,7 +87,7 @@ for i in range(5):
 db.conn.commit()
 
 print("Adding triggers...")
-condition = [{"key": "temperature", "value": 14}, {"key": "humidity", "value": 25}]
+condition = {"temperature": ">=14", "humidity": ">=25"}
 action_payload = {"temperature": 22}
 
 trigger_id_1 = db.add_trigger("Increase temperature", sensor_id_1, condition, device_id_1, action_payload)

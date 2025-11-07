@@ -1,16 +1,26 @@
+import datetime
+
 import paho.mqtt.client as paho
 from paho import mqtt
 import json
 
 from db import Database
 
-def is_rule_valid(rule, msg):
-    if rule["topic"] != msg.topic:
+
+def is_rule_valid(trigger_condition, msg):
+    if trigger_condition["topic"] != msg.topic:
         return False
-    is_triggers_valid = True
     msg_payload = json.loads(msg.payload)
-    for trigger in rule["conditions"]:
-       is_triggers_valid = is_triggers_valid and (trigger['key'] in msg_payload and msg_payload[trigger['key']] == trigger['value'])
+    if "sensor_id" not in msg_payload or trigger_condition["sensor_id"] != msg_payload["sensor_id"]:
+        return False
+    conditions = trigger_condition["conditions"]
+    is_triggers_valid = True
+
+    for key, comparator in conditions.items():
+        is_triggers_valid = is_triggers_valid and (
+                key in msg_payload and eval(str(msg_payload[key]) + comparator))
+        if not is_triggers_valid:
+            break
     return is_triggers_valid
 
 
@@ -33,9 +43,11 @@ class Controller:
 
         def on_message(client, userdata, msg):
             print("Received message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
-            for trigger in self.triggers:
-                if is_rule_valid(trigger["trigger"], msg):
-                    print("Running rule: " + trigger["name"])
+            enabled_triggers = filter(lambda tr: tr["enabled"] > 0, self.triggers)
+            for trigger in enabled_triggers:
+                if is_rule_valid(trigger["condition"], msg):
+                    print("Running trigger_condition: " + trigger["name"])
+                    self.db.log_trigger(trigger["id"], datetime.datetime.now())
                     for action in trigger["actions"]:
                         self.publish(action["topic"], json.dumps(action["payload"]), action["qos"])
                 else:
