@@ -2,6 +2,7 @@ import paho.mqtt.client as paho
 from paho import mqtt
 import json
 
+from db import Database
 
 def is_rule_valid(rule, msg):
     if rule["topic"] != msg.topic:
@@ -14,11 +15,12 @@ def is_rule_valid(rule, msg):
 
 
 class Controller:
-    def __init__(self, client_id, protocol):
+    def __init__(self, client_id, protocol, db_path=None):
+        self.db = Database(db_path=db_path)
         self.client = paho.Client(client_id=client_id, protocol=protocol, userdata=None)
         self.client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
 
-        self.rules = []
+        self.triggers = []
 
         def on_connect(client, userdata, flags, rc, properties=None):
             print("CONNACK received with code " + str(rc))
@@ -31,13 +33,13 @@ class Controller:
 
         def on_message(client, userdata, msg):
             print("Received message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
-            for rule in self.rules:
-                if is_rule_valid(rule["trigger"], msg):
-                    print("Running rule: " + rule["name"])
-                    for action in rule["actions"]:
+            for trigger in self.triggers:
+                if is_rule_valid(trigger["trigger"], msg):
+                    print("Running rule: " + trigger["name"])
+                    for action in trigger["actions"]:
                         self.publish(action["topic"], json.dumps(action["payload"]), action["qos"])
                 else:
-                    print("Rule " + rule["name"] + " not valid")
+                    print("Rule " + trigger["name"] + " not valid")
 
 
         self.client.on_connect = on_connect
@@ -55,7 +57,6 @@ class Controller:
 
     def stop(self):
         self.client.loop_stop()
-        self.save_rules()
 
     def subscribe(self, topic, qos):
         self.client.subscribe(topic, qos)
@@ -64,19 +65,59 @@ class Controller:
         self.client.publish(topic, payload, qos)
 
     def load_rules(self):
-        with open('controller_rules.json') as json_file:
-            self.rules = json.load(json_file)
+        db_triggers = self.db.get_all_triggers()
+        for db_trigger in db_triggers:
+            trigger = {
+                "id": int(db_trigger[0]),
+                "name": db_trigger[1],
+                "condition": {
+                    "sensor_id": int(db_trigger[2]),
+                    "topic": self.db.get_sensor_category(int(db_trigger[2])) + "/get",
+                    "conditions": json.loads(db_trigger[3]),
+                },
+                "actions": [
+                    {
+                        "topic": self.db.get_device_category(int(db_trigger[4])) + "/send",
+                        "payload": {"device_id": int(db_trigger[4])} | json.loads(db_trigger[5]),
+                        "qos": 1
+                    }
+                ],
+                "enabled": int(db_trigger[6])
+            }
+            self.triggers.append(trigger)
 
-    def save_rules(self):
-        with open('controller_rules.json', 'w') as json_file:
-            json_file.write(json.dumps(self.rules))
+    def add_rule(self, name, sensor_id, conditions, device_id, action_payload):
+        trigger_id = self.db.add_trigger(name, sensor_id, conditions, device_id, action_payload)
+        trigger = {
+            "id": trigger_id,
+            "name": name,
+            "condition": {
+                "sensor_id": sensor_id,
+                "topic": self.db.get_sensor_category(sensor_id) + "/get",
+                "conditions": conditions,
+            },
+            "actions": [
+                {
+                    "topic": self.db.get_device_category(device_id) + "/send",
+                    "payload": {"device_id": device_id} | action_payload,
+                    "qos": 1
+                }
+            ],
+            "enabled": 1
+        }
+        self.triggers.append(trigger)
 
-    def add_rule(self, rule):
-        self.rules.append(rule)
-
-    def delete_rule(self, rule_name):
+    def delete_rule(self, trigger_id):
+        self.db.delete_trigger(trigger_id)
         rule_to_delete = None
-        for rule in self.rules:
-            if rule["name"] == rule_name:
+        for rule in self.triggers:
+            if rule["id"] == trigger_id:
                 rule_to_delete = rule
-        if rule_to_delete is not None: self.rules.remove(rule_to_delete)
+        if rule_to_delete is not None: self.triggers.remove(rule_to_delete)
+
+    def switch_trigger(self, trigger_id):
+        for trigger in self.triggers:
+            if trigger["id"] == trigger_id:
+                target_state = (trigger["enabled"] + 1) % 2
+                trigger["enabled"] = target_state
+                self.db.switch_trigger(trigger_id, target_state)
