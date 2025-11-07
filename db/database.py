@@ -124,3 +124,12 @@ class Database:
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM triggers DESC")
         return cursor.fetchall()
+
+    def switch_trigger(self, trigger_id, target_state):
+        cursor = self.conn.cursor()
+        cursor.execute("""
+                    UPDATE triggers
+                    SET enabled= ?
+                    WHERE id= ?
+                """, (target_state, trigger_id))
+        self.conn.commit()
