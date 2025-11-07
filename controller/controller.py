@@ -5,7 +5,6 @@ from paho import mqtt
 import json
 
 from db import Database
-from db.add_dummy_data import trigger_id_1
 
 
 def is_trigger_valid(trigger_condition, msg):
