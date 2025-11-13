@@ -4,10 +4,10 @@ import os
 import sqlite3
 
 
-class MonitorDatabase:
+class Database:
     def __init__(self, db_path=None):
         if db_path is None:
-            db_path = os.path.join("monitor", "db", "smart_home_monitor.db")
+            db_path = os.path.join("db", "smart_home_monitor.db")
         self.conn = sqlite3.connect(db_path)
         self.create_tables()
 
@@ -92,3 +92,49 @@ class MonitorDatabase:
         cur.execute("SELECT category FROM devices WHERE id=?", (device_id,))
         row = cur.fetchone()
         return row[0] if row else "unknown"
+
+    def add_trigger(self, name, sensor_id, condition, device_id, action_payload):
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            INSERT INTO triggers (name, sensor_id, condition, device_id, action_payload)
+            VALUES (?, ?, ?, ?, ?);
+        """, (name, sensor_id, json.dumps(condition), device_id, json.dumps(action_payload)))
+        trigger_id = cursor.lastrowid
+        self.conn.commit()
+        return trigger_id
+
+    def log_trigger(self, trigger_id, timestamp):
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            UPDATE triggers
+            SET last_triggered= ?
+            WHERE id= ?
+        """, (timestamp, trigger_id))
+        self.conn.commit()
+
+    def delete_trigger(self, trigger_id):
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            DELETE FROM triggers
+            WHERE id= ?
+        """, (trigger_id,))
+        self.conn.commit()
+
+    def get_all_triggers(self):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM triggers DESC")
+        return cursor.fetchall()
+
+    def switch_trigger(self, trigger_id, target_state):
+        cursor = self.conn.cursor()
+        cursor.execute("""
+                    UPDATE triggers
+                    SET enabled= ?
+                    WHERE id= ?
+                """, (target_state, trigger_id))
+        self.conn.commit()
+
+    def get_all_sensor_categories(self):
+        cursor = self.conn.cursor()
+        cursor.execute("""SELECT category FROM sensors;""")
+        return cursor.fetchall()

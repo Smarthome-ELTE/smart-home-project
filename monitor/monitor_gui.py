@@ -1,7 +1,6 @@
 import json
-import tkinter as tk
 from tkinter import ttk
-from monitor.db.database import MonitorDatabase
+from db.database import Database
 
 
 class MonitorGUI(ttk.Frame):
@@ -9,7 +8,7 @@ class MonitorGUI(ttk.Frame):
     
     def __init__(self, parent, db_path=None):
         super().__init__(parent)
-        self.db = MonitorDatabase(db_path=db_path)
+        self.db = Database(db_path=db_path)
         self.setup_ui()
         self.load_events()
     
