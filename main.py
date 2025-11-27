@@ -5,7 +5,7 @@ Initializes Controller, Monitor, and GUI with heating system support
 
 from controller import Controller
 from monitor import Monitor
-from enhanced_gui import start_gui
+from wireframe import start_gui
 import paho.mqtt.client as paho
 import sys
 
