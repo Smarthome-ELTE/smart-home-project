@@ -5,9 +5,10 @@ Initializes Controller, Monitor, and GUI with heating system support
 
 from controller import Controller
 from monitor import Monitor
-from wireframe import start_gui
 import paho.mqtt.client as paho
 import sys
+import os
+import time
 
 
 def main():
@@ -42,18 +43,37 @@ def main():
         print("   - Subscribed to: +/get, +/send")
         print("   - Logging all events to database")
         
-        # Start GUI
-        print("\n🖥️  Starting GUI...")
-        print("=" * 60)
-        print("\n💡 TIPS:")
-        print("   1. Use Node-RED to simulate temperature sensors")
-        print("   2. Click 'Cold (17°C)' in Node-RED to trigger heating")
-        print("   3. Watch automation rules execute in real-time")
-        print("   4. Monitor all events in the GUI")
-        print("\n" + "=" * 60)
+        # Check if running in Docker (no GUI mode)
+        no_gui = os.getenv('NO_GUI', 'false').lower() == 'true'
         
-        # Launch GUI (blocking call)
-        start_gui(controller=controller)
+        if no_gui:
+            # Docker mode - keep services running without GUI
+            print("\n🐳 Running in Docker mode (backend only)")
+            print("   - Controller and Monitor are active")
+            print("   - To use GUI, run: python main.py (on host)")
+            print("   - Node-RED: http://localhost:1880")
+            print("   - Press Ctrl+C to stop")
+            print("\n" + "=" * 60)
+            
+            # Keep container alive
+            while True:
+                time.sleep(1)
+        else:
+            # Normal mode - start GUI
+            # Import wireframe ONLY when GUI is needed
+            from wireframe import start_gui
+            
+            print("\n🖥️  Starting GUI...")
+            print("=" * 60)
+            print("\n💡 TIPS:")
+            print("   1. Use Node-RED to simulate temperature sensors")
+            print("   2. Click 'Cold (17°C)' in Node-RED to trigger heating")
+            print("   3. Watch automation rules execute in real-time")
+            print("   4. Monitor all events in the GUI")
+            print("\n" + "=" * 60)
+            
+            # Launch GUI (blocking call)
+            start_gui(controller=controller)
         
     except KeyboardInterrupt:
         print("\n\n⚠️  Shutdown requested by user")
