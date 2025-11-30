@@ -1,0 +1,125 @@
+[
+    {
+        "id": "931db88119518e5e",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "5fbb44d3f6bb029f",
+        "type": "tls-config",
+        "z": "931db88119518e5e",
+        "name": "main",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "",
+        "servername": "",
+        "verifyservercert": true,
+        "alpnprotocol": ""
+    },
+    {
+        "id": "2a98ee67c200799e",
+        "type": "mqtt-broker",
+        "z": "931db88119518e5e",
+        "name": "main",
+        "broker": "${MQTT_HOST}",
+        "port": "${MQTT_PORT}",
+        "tls": "5fbb44d3f6bb029f",
+        "clientid": "water_sensor_1",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": "5",
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "97617058de474131",
+        "type": "inject",
+        "z": "931db88119518e5e",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "water/get",
+        "payload": "{\"device_id\":\"1\",\"water_pressure\":15}",
+        "payloadType": "json",
+        "x": 190,
+        "y": 260,
+        "wires": [
+            [
+                "0a7d05ef1f5c2263"
+            ]
+        ]
+    },
+    {
+        "id": "856fee043c973461",
+        "type": "mqtt out",
+        "z": "931db88119518e5e",
+        "name": "",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "2a98ee67c200799e",
+        "x": 870,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "0a7d05ef1f5c2263",
+        "type": "function",
+        "z": "931db88119518e5e",
+        "name": "Randomize data",
+        "func": "console.log(msg.payload);\nmsg.payload.water_pressure = Math.floor(Math.random() * 100);\nconsole.log(msg.payload);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 260,
+        "wires": [
+            [
+                "856fee043c973461"
+            ]
+        ]
+    }
+]
