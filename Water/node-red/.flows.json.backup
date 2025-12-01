@@ -2,7 +2,15 @@
     {
         "id": "931db88119518e5e",
         "type": "tab",
-        "label": "Flow 1",
+        "label": "Test Send MQTT Message",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "593616167e3c2e87",
+        "type": "tab",
+        "label": "Test Receive MQTT Message",
         "disabled": false,
         "info": "",
         "env": []
@@ -10,7 +18,6 @@
     {
         "id": "5fbb44d3f6bb029f",
         "type": "tls-config",
-        "z": "931db88119518e5e",
         "name": "main",
         "cert": "",
         "key": "",
@@ -56,10 +63,43 @@
         "sessionExpiry": ""
     },
     {
+        "id": "d85133725914be37",
+        "type": "mqtt-broker",
+        "z": "593616167e3c2e87",
+        "name": "Device",
+        "broker": "${MQTT_HOST}",
+        "port": "${MQTT_PORT}",
+        "tls": "5fbb44d3f6bb029f",
+        "clientid": "Device",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": "5",
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
         "id": "97617058de474131",
         "type": "inject",
         "z": "931db88119518e5e",
-        "name": "",
+        "name": "Send message from sensor",
         "props": [
             {
                 "p": "payload"
@@ -76,7 +116,7 @@
         "topic": "water/get",
         "payload": "{\"device_id\":\"1\",\"water_pressure\":15}",
         "payloadType": "json",
-        "x": 190,
+        "x": 260,
         "y": 260,
         "wires": [
             [
@@ -98,7 +138,7 @@
         "correl": "",
         "expiry": "",
         "broker": "2a98ee67c200799e",
-        "x": 870,
+        "x": 790,
         "y": 260,
         "wires": []
     },
@@ -114,12 +154,94 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 480,
+        "x": 560,
         "y": 260,
         "wires": [
             [
                 "856fee043c973461"
             ]
         ]
+    },
+    {
+        "id": "7cc59b29ccda0471",
+        "type": "mqtt in",
+        "z": "593616167e3c2e87",
+        "name": "msg",
+        "topic": "water/send",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "d85133725914be37",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 330,
+        "y": 240,
+        "wires": [
+            [
+                "f6cc373cc4cbdf12",
+                "f757f3e82ad3ae0a"
+            ]
+        ]
+    },
+    {
+        "id": "f6cc373cc4cbdf12",
+        "type": "debug",
+        "z": "593616167e3c2e87",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 550,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "f757f3e82ad3ae0a",
+        "type": "delay",
+        "z": "593616167e3c2e87",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "10",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 540,
+        "y": 360,
+        "wires": [
+            [
+                "a02ea90bd90ed237"
+            ]
+        ]
+    },
+    {
+        "id": "a02ea90bd90ed237",
+        "type": "mqtt out",
+        "z": "593616167e3c2e87",
+        "name": "",
+        "topic": "water/get",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "d85133725914be37",
+        "x": 780,
+        "y": 360,
+        "wires": []
     }
 ]
