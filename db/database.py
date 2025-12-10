@@ -8,7 +8,7 @@ class Database:
     def __init__(self, db_path=None):
         if db_path is None:
             db_path = os.path.join("db", "smart_home_monitor.db")
-        self.conn = sqlite3.connect(db_path)
+        self.conn = sqlite3.connect(db_path, check_same_thread=False)
         self.create_tables()
 
     def create_tables(self):

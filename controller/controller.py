@@ -16,9 +16,27 @@ def is_trigger_valid(trigger_condition, msg):
     conditions = trigger_condition["conditions"]
     is_triggers_valid = True
 
-    for key, comparator in conditions.items():
-        is_triggers_valid = is_triggers_valid and (
-                key in msg_payload and eval(str(msg_payload[key]) + comparator))
+    for key, comparator_string in conditions.items():
+        if key not in msg_payload:
+            is_triggers_valid = False
+            break
+
+        condition_parts = comparator_string.split('&')
+
+        is_condition_group_valid = True
+        sensor_value = msg_payload[key]
+
+        for part in condition_parts:
+            part = part.strip()
+
+            comparison_string = str(sensor_value) + part
+
+            if not eval(comparison_string):
+                is_condition_group_valid = False
+                break
+
+        is_triggers_valid = is_triggers_valid and is_condition_group_valid
+
         if not is_triggers_valid:
             break
     return is_triggers_valid
@@ -33,6 +51,8 @@ class Controller:
         self.__triggers = []
 
         def on_connect(client, userdata, flags, rc, properties=None):
+            for cat in self.__categories:
+                client.subscribe(cat + "/get", qos=1)
             print("CONNACK received with code " + str(rc))
 
         def on_publish(client, userdata, mid, properties=None):
@@ -57,10 +77,7 @@ class Controller:
         self.__client.on_subscribe = on_subscribe
         self.__client.on_publish = on_publish
         self.__client.on_message = on_message
-
-        categories = set(map(lambda cat_tuple: cat_tuple[0], self.__db.get_all_sensor_categories()))
-        for category in categories:
-            self.__client.subscribe(category + "/get", 1)
+        self.__categories = set(map(lambda cat_tuple: cat_tuple[0], self.__db.get_all_sensor_categories()))
 
     def connect(self, host, port, username, password):
         self.__client.username_pw_set(username, password)

@@ -29,6 +29,17 @@ class Monitor:
             try:
                 payload_data = json.loads(msg.payload)
 
+                topic_parts = msg.topic.split('/')
+                if len(topic_parts) == 2:
+                    action_type = topic_parts[1]
+                else:
+                    action_type = "unknown"
+
+                payload_data['action'] = action_type
+
+                source_type = None
+                source_id = None
+
                 if "sensor_id" in payload_data:
                     source_id = payload_data["sensor_id"]
                     source_type = "sensor" 
