@@ -1,0 +1,328 @@
+[
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Smart Bulb Flow",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "a189f81d18728d44",
+        "type": "subflow",
+        "name": "MQTT Heating Control",
+        "info": "This subflow is used to publish control commands to the Smart Home system's heaters via MQTT.",
+        "category": "",
+        "in": [
+            {
+                "x": 40,
+                "y": 140,
+                "wires": [
+                    {
+                        "id": "e44d5a71df5c4a56"
+                    }
+                ]
+            }
+        ],
+        "out": [],
+        "env": [
+            {
+                "name": "DEVICE_ID",
+                "type": "num",
+                "value": "1",
+                "ui": {
+                    "label": {
+                        "0": "H",
+                        "1": "e",
+                        "2": "a",
+                        "3": "t",
+                        "4": "e",
+                        "5": "r",
+                        "6": " ",
+                        "7": "D",
+                        "8": "e",
+                        "9": "v",
+                        "10": "i",
+                        "11": "c",
+                        "12": "e",
+                        "13": " ",
+                        "14": "I",
+                        "15": "D"
+                    },
+                    "type": "text"
+                }
+            },
+            {
+                "name": "STATE",
+                "type": "str",
+                "value": "on",
+                "ui": {
+                    "label": {
+                        "0": "S",
+                        "1": "t",
+                        "2": "a",
+                        "3": "t",
+                        "4": "e",
+                        "5": " ",
+                        "6": "(",
+                        "7": "o",
+                        "8": "n",
+                        "9": "/",
+                        "10": "o",
+                        "11": "f",
+                        "12": "f",
+                        "13": ")"
+                    },
+                    "type": "select",
+                    "opts": {
+                        "opts": [
+                            {
+                                "label": "ON",
+                                "value": "on"
+                            },
+                            {
+                                "label": "OFF",
+                                "value": "off"
+                            }
+                        ]
+                    }
+                }
+            }
+        ],
+        "meta": {},
+        "color": "#DDAA99",
+        "icon": "font-awesome/fa-fire",
+        "status": {
+            "x": 460,
+            "y": 140,
+            "wires": []
+        }
+    },
+    {
+        "id": "7431b860b9f7cf96",
+        "type": "mqtt-broker",
+        "z": "a189f81d18728d44",
+        "name": "",
+        "broker": "910e146c7f1f4c0fa6799235de0cd0fe.s1.eu.hivemq.cloud",
+        "port": "8883",
+        "tls": "",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "e8b90ec968138406",
+        "type": "mqtt-broker",
+        "name": "Server",
+        "broker": "910e146c7f1f4c0fa6799235de0cd0fe.s1.eu.hivemq.cloud",
+        "port": "8883",
+        "tls": "",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "e44d5a71df5c4a56",
+        "type": "function",
+        "z": "a189f81d18728d44",
+        "name": "Construct Payload",
+        "func": "const deviceId = env.get(\"DEVICE_ID\");\nconst state = env.get(\"STATE\");\nconst targetTemp = env.get(\"TARGET_TEMP\");\n\nmsg.topic = \"temperature/send\";\n\n// Start with the required device_id and state\nlet payload = {\n    \"device_id\": parseInt(deviceId),\n    \"state\": state\n};\n\n// Only add 'temperature' if the state is explicitly 'on'\nif (state === \"on\") {\n    payload.temperature = parseInt(targetTemp);\n}\n\n// Ensure the payload is a JSON string before sending via MQTT\nmsg.payload = JSON.stringify(payload);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 230,
+        "y": 140,
+        "wires": [
+            [
+                "a9437ff86e8fa134"
+            ]
+        ]
+    },
+    {
+        "id": "a9437ff86e8fa134",
+        "type": "mqtt out",
+        "z": "a189f81d18728d44",
+        "name": "MQTT Out: temperature/send",
+        "topic": "temperature/send",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "7431b860b9f7cf96",
+        "x": 700,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "129d52cb9e4a9d8f",
+        "type": "mqtt out",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "topic": "",
+        "qos": "1",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "e8b90ec968138406",
+        "x": 430,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "1f52b5d5347c12c2",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 100,
+        "y": 400,
+        "wires": [
+            [
+                "8f9270b4cd65e93c"
+            ]
+        ]
+    },
+    {
+        "id": "8f9270b4cd65e93c",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "function 1",
+        "func": "var sensorId = 12;\nvar brightnessLevel = 20; \n\n// Construct the payload for the Monitor/Controller\nmsg.topic = \"light/get\";\nmsg.payload = JSON.stringify({\n    \"sensor_id\": sensorId,\n    \"brightness\": brightnessLevel, // Key for sensor data\n    \"action\": \"send\" // Action is often included\n});\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 280,
+        "y": 400,
+        "wires": [
+            [
+                "129d52cb9e4a9d8f"
+            ]
+        ]
+    },
+    {
+        "id": "ba991c629688e378",
+        "type": "mqtt in",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "topic": "light/send",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "e8b90ec968138406",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 80,
+        "y": 480,
+        "wires": [
+            [
+                "6a3b12b3ddd1ee21"
+            ]
+        ]
+    },
+    {
+        "id": "6a3b12b3ddd1ee21",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "function 2",
+        "func": "// In Function Node\nvar command = msg.payload;\nvar deviceId = command.device_id;\nvar state = command.state;\nvar brightness = command.brightness;\nvar hue = command.hue || 0;\nvar saturation = command.saturation || 0;\n\n// Logic to control the simulated light (e.g., update a dashboard gauge/text)\nif (deviceId == 9) {\n    msg.payload = `Bulb State: ${state.toUpperCase()}, Brightness: ${brightness}%, Hue: ${hue}, Saturation: ${saturation}`;\n    return msg;\n}\n\nreturn null; // Ignore other device commands",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 280,
+        "y": 480,
+        "wires": [
+            [
+                "db068edfd2c73cdb"
+            ]
+        ]
+    },
+    {
+        "id": "db068edfd2c73cdb",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 500,
+        "y": 480,
+        "wires": []
+    }
+]
