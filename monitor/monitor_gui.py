@@ -40,9 +40,9 @@ class MonitorGUI(ttk.Frame):
         self.tree.heading("Time", text="Time")
         
         self.tree.column("Type", width=80)
-        self.tree.column("Topic", width=200)
-        self.tree.column("Payload", width=180)
-        self.tree.column("Time", width=140)
+        self.tree.column("Topic", width=150)  # Reduced to fit
+        self.tree.column("Payload", width=250)  # Increased for payload
+        self.tree.column("Time", width=160)
         
         # Scrollbar
         scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)

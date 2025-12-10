@@ -38,14 +38,14 @@ class HeatingControlPanel(ttk.Frame):
         status_frame = ttk.LabelFrame(self, text="Current Status", padding=15)
         status_frame.pack(fill="x", pady=(0, 10))
         
-        # Status labels container
+        # Status container
         self.status_container = ttk.Frame(status_frame)
         self.status_container.pack(fill="x")
         
-        # Temperature Display (Only Heating Sensors)
+        # Temperature Display (Heating Sensors)
         self.temp_labels = {}
         
-        # Get heating sensors
+        # Get heating sensors and create labels
         cursor = self.db.conn.cursor()
         cursor.execute("""
             SELECT id, name FROM sensors 
@@ -54,14 +54,23 @@ class HeatingControlPanel(ttk.Frame):
         """)
         heating_sensors = cursor.fetchall()
         
-        for sensor_id, sensor_name in heating_sensors:
-            label = ttk.Label(self.status_container, 
-                            text=f"{sensor_name}: --°C", 
-                            font=("Segoe UI", 11))
-            label.pack(anchor="w", pady=2)
-            self.temp_labels[sensor_id] = label
+        if heating_sensors:
+            for sensor_id, sensor_name in heating_sensors:
+                label = ttk.Label(self.status_container, 
+                                text=f"{sensor_name}: --°C", 
+                                font=("Segoe UI", 11))
+                label.pack(anchor="w", pady=2)
+                self.temp_labels[sensor_id] = label
+        else:
+            # Show message if no sensors
+            ttk.Label(self.status_container, 
+                     text="No heating sensors found",
+                     foreground="gray").pack(anchor="w", pady=2)
         
-        # Heater status labels (Only Heating Devices)
+        # Add separator
+        ttk.Separator(self.status_container, orient='horizontal').pack(fill='x', pady=5)
+        
+        # Heater Status Display (Heating Devices)
         self.heater_labels = {}
         
         cursor.execute("""
@@ -71,14 +80,21 @@ class HeatingControlPanel(ttk.Frame):
         """)
         heating_devices = cursor.fetchall()
         
-        for device_id, device_name in heating_devices:
-            label = ttk.Label(self.status_container, 
-                            text=f"{device_name}: OFF", 
-                            font=("Segoe UI", 11))
-            label.pack(anchor="w", pady=2)
-            self.heater_labels[device_id] = label
+        if heating_devices:
+            for device_id, device_name in heating_devices:
+                label = ttk.Label(self.status_container, 
+                                text=f"{device_name}: OFF", 
+                                font=("Segoe UI", 11),
+                                foreground="#666")
+                label.pack(anchor="w", pady=2)
+                self.heater_labels[device_id] = label
+        else:
+            # Show message if no devices
+            ttk.Label(self.status_container, 
+                     text="No heating devices found",
+                     foreground="gray").pack(anchor="w", pady=2)
         
-        # Automation Rules Frame (Only Heating Rules)
+        # Automation Rules Frame
         rules_frame = ttk.LabelFrame(self, text="Automation Rules", padding=15)
         rules_frame.pack(fill="both", expand=True, pady=(10, 0))
         
@@ -118,7 +134,7 @@ class HeatingControlPanel(ttk.Frame):
         """Load current heating sensor data and automation rules"""
         cursor = self.db.conn.cursor()
         
-        # Load heating temperature sensors only
+        # Load heating temperature sensors
         cursor.execute("""
             SELECT id, name, last_payload 
             FROM sensors 
@@ -135,14 +151,21 @@ class HeatingControlPanel(ttk.Frame):
                         temp = data.get('temperature', '--')
                         humidity = data.get('humidity', '--')
                         self.temp_labels[sensor_id].config(
-                            text=f"{name}: {temp}°C (Humidity: {humidity}%)"
+                            text=f"{name}: {temp}°C (Humidity: {humidity}%)",
+                            foreground="black"
                         )
                     except Exception as e:
-                        self.temp_labels[sensor_id].config(text=f"{name}: Error")
+                        self.temp_labels[sensor_id].config(
+                            text=f"{name}: Error parsing data",
+                            foreground="red"
+                        )
                 else:
-                    self.temp_labels[sensor_id].config(text=f"{name}: No data")
+                    self.temp_labels[sensor_id].config(
+                        text=f"{name}: No data",
+                        foreground="gray"
+                    )
         
-        # Load heating devices only
+        # Load heating devices
         cursor.execute("""
             SELECT id, name, current_status 
             FROM devices 
@@ -157,20 +180,36 @@ class HeatingControlPanel(ttk.Frame):
                     try:
                         data = json.loads(status)
                         state = data.get('state', 'unknown').upper()
-                        target = data.get('target_temp', '--')
+                        target = data.get('target_temp', data.get('temperature', '--'))
                         power = data.get('power', 0)
                         
-                        status_text = f"{name}: {state}"
+                        # Format display based on state
                         if state == "ON":
-                            status_text += f" (Target: {target}°C, Power: {power}W)"
+                            status_text = f"{name}: 🔥 ON (Target: {target}°C, Power: {power}W)"
+                            color = "#D32F2F"  # Red for ON
+                        elif state == "OFF":
+                            status_text = f"{name}: ❄️ OFF (Target: {target}°C)"
+                            color = "#1976D2"  # Blue for OFF
+                        else:
+                            status_text = f"{name}: {state}"
+                            color = "#666"
                         
-                        self.heater_labels[device_id].config(text=status_text)
+                        self.heater_labels[device_id].config(
+                            text=status_text,
+                            foreground=color
+                        )
                     except Exception as e:
-                        self.heater_labels[device_id].config(text=f"{name}: Error")
+                        self.heater_labels[device_id].config(
+                            text=f"{name}: Error - {e}",
+                            foreground="red"
+                        )
                 else:
-                    self.heater_labels[device_id].config(text=f"{name}: No data")
+                    self.heater_labels[device_id].config(
+                        text=f"{name}: No data",
+                        foreground="gray"
+                    )
         
-        # Load heating automation rules only
+        # Load heating automation rules
         self.rules_tree.delete(*self.rules_tree.get_children())
         
         # Broader filter to catch all heating-related rules
@@ -180,6 +219,8 @@ class HeatingControlPanel(ttk.Frame):
             WHERE name LIKE '%Room:%' 
                OR name LIKE '%Heating%'
                OR name LIKE '%Heat%'
+               OR name LIKE '%cold%'
+               OR name LIKE '%hot%'
             ORDER BY id
         """)
         triggers = cursor.fetchall()
@@ -190,10 +231,10 @@ class HeatingControlPanel(ttk.Frame):
                                   tags=(trigger_id,))
     
     def start_auto_refresh(self):
-        """Start automatic refresh every 3 seconds"""
+        """Start automatic refresh every 2 seconds"""
         self.load_data()
         # Schedule next refresh
-        self.auto_refresh_job = self.after(3000, self.start_auto_refresh)
+        self.auto_refresh_job = self.after(2000, self.start_auto_refresh)
     
     def stop_auto_refresh(self):
         """Stop automatic refresh"""
@@ -234,7 +275,7 @@ class HeatingControlPanel(ttk.Frame):
         name_entry.pack(pady=5)
         name_entry.insert(0, "My Custom Heating Rule")
         
-        # Sensor Selection (Heating sensors only)
+        # Sensor Selection
         ttk.Label(dialog, text="Temperature Sensor:").pack(pady=(10, 0))
         
         cursor = self.db.conn.cursor()
@@ -273,7 +314,7 @@ class HeatingControlPanel(ttk.Frame):
         
         ttk.Label(condition_frame, text="°C").pack(side="left")
         
-        # Device Selection (Heating devices only)
+        # Device Selection
         ttk.Label(dialog, text="Heater Device:").pack(pady=(10, 0))
         
         cursor.execute("""
@@ -303,7 +344,7 @@ class HeatingControlPanel(ttk.Frame):
         ttk.Radiobutton(action_frame, text="Turn OFF", 
                        variable=state_var, value="off").pack(side="left", padx=10)
         
-        # Target Temperature (for ON action)
+        # Target Temperature
         temp_frame = ttk.Frame(dialog)
         temp_frame.pack(pady=10)
         

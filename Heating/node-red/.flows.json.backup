@@ -59,7 +59,7 @@
                 "p": "payload"
             }
         ],
-        "repeat": "30",
+        "repeat": "",
         "crontab": "",
         "once": true,
         "onceDelay": "3",
@@ -207,7 +207,7 @@
         "id": "mqtt_heater_in",
         "type": "mqtt in",
         "z": "heating_tab",
-        "name": "← temperature/get",
+        "name": "← temperature/send",
         "topic": "temperature/send",
         "qos": "1",
         "datatype": "json",
