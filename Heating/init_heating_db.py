@@ -46,11 +46,11 @@ def initialize_heating_system():
     """, (
         'Living Room Temperature',
         'temperature',
-        'DHT22',
+        'DHT22_Heating',
         json.dumps({"temperature": 20.5, "humidity": 45, "unit": "C"})
     ))
     sensor_temp_living = cursor.lastrowid
-    print(f"  ✓ Sensor ID {sensor_temp_living}: Living Room Temperature (DHT22)")
+    print(f"  ✓ Sensor ID {sensor_temp_living}: Living Room Temperature (DHT22_Heating)")
     
     # Temperature Sensor 2 (Bedroom)
     cursor.execute("""
@@ -59,11 +59,11 @@ def initialize_heating_system():
     """, (
         'Bedroom Temperature',
         'temperature',
-        'DHT22',
+        'DHT22_Heating',
         json.dumps({"temperature": 19.0, "humidity": 50, "unit": "C"})
     ))
     sensor_temp_bedroom = cursor.lastrowid
-    print(f"  ✓ Sensor ID {sensor_temp_bedroom}: Bedroom Temperature (DHT22)")
+    print(f"  ✓ Sensor ID {sensor_temp_bedroom}: Bedroom Temperature (DHT22_Heating)")
     
     # Light Sensor (for completeness)
     cursor.execute("""
@@ -105,11 +105,11 @@ def initialize_heating_system():
     """, (
         'Living Room Heater',
         'temperature',
-        'SmartHeater',
+        'SmartHeater_v2',
         json.dumps({"state": "off", "target_temp": 20, "power": 0})
     ))
     device_heater_living = cursor.lastrowid
-    print(f"  ✓ Device ID {device_heater_living}: Living Room Heater (SmartHeater)")
+    print(f"  ✓ Device ID {device_heater_living}: Living Room Heater (SmartHeater_v2)")
     
     # Heater 2 (Bedroom)
     cursor.execute("""
@@ -118,11 +118,11 @@ def initialize_heating_system():
     """, (
         'Bedroom Heater',
         'temperature',
-        'SmartHeater',
+        'SmartHeater_v2',
         json.dumps({"state": "off", "target_temp": 18, "power": 0})
     ))
     device_heater_bedroom = cursor.lastrowid
-    print(f"  ✓ Device ID {device_heater_bedroom}: Bedroom Heater (SmartHeater)")
+    print(f"  ✓ Device ID {device_heater_bedroom}: Bedroom Heater (SmartHeater_v2)")
     
     # Smart Bulb (for completeness)
     cursor.execute("""
