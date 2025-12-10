@@ -1,140 +1,284 @@
-from datetime import datetime
-import json
-import os
+"""
+Database module for Smart Home System
+Handles SQLite database operations for sensors, devices, triggers, and events
+"""
+
 import sqlite3
+import json
+from datetime import datetime
 
 
 class Database:
     def __init__(self, db_path=None):
+        """Initialize database connection and create tables if needed"""
         if db_path is None:
-            db_path = os.path.join("db", "smart_home_monitor.db")
-        self.conn = sqlite3.connect(db_path)
+            db_path = 'db/smart_home_monitor.db'
+        
+        self.conn = sqlite3.connect(db_path, check_same_thread=False)
         self.create_tables()
-
+    
     def create_tables(self):
+        """Create database tables if they don't exist"""
         cursor = self.conn.cursor()
-        cursor.executescript("""
         
-        /* Sensors */
+        # Sensors table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS sensors (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                category TEXT NOT NULL,
+                type TEXT NOT NULL,
+                last_payload TEXT,
+                last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
         
-        CREATE TABLE IF NOT EXISTS sensors (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,   
-            name TEXT NOT NULL,                             -- User friendly name for GUI, e.g.: 'Living Room Temperature'      
-            category TEXT NOT NULL,                         -- Sensor category, e.q.: 'temperature', 'light', 'gas', 'water' 
-            type TEXT NOT NULL,                             -- Sensor type, e.q.: 'Thermometer', 'Hygrometer'                                                        
-            last_payload TEXT,                              -- Cached JSON of the most recent data from this sensor, e.g.: '{"value": 21.5}'                                                       
-            last_update TIMESTAMP                           -- The date and time 'last_payload' was updated.         
-        );
-
-        /* Devices */
+        # Devices table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS devices (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                category TEXT NOT NULL,
+                type TEXT NOT NULL,
+                current_status TEXT,
+                last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
         
-        CREATE TABLE IF NOT EXISTS devices (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,   
-            name TEXT NOT NULL,                             -- User friendly name for GUI, e.g.: 'Main Heater'
-            category TEXT NOT NULL,                         -- Device category, e.q.: 'temperature', 'light', 'gas', 'water' 
-            type TEXT NOT NULL,                             -- Device type, e.q.: 'Heater', 'Plug', 'Lightbulb'                 
-            current_status TEXT,                            -- Cached JSON of the most recent device state, e.g.: '{"state": "on", "mode": "auto"}'
-            last_update TIMESTAMP                           -- The date and time 'current_status' was updated.
-        );
-
-        /* Events */
+        # Triggers/Automation Rules table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS triggers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                sensor_id INTEGER NOT NULL,
+                condition TEXT NOT NULL,
+                device_id INTEGER NOT NULL,
+                action_payload TEXT NOT NULL,
+                enabled INTEGER DEFAULT 1,
+                FOREIGN KEY (sensor_id) REFERENCES sensors(id),
+                FOREIGN KEY (device_id) REFERENCES devices(id)
+            )
+        ''')
         
-        CREATE TABLE IF NOT EXISTS events (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            source_type TEXT NOT NULL,                      -- Specifies which table the 'source_id' refers to, e.g.: 'sensor' or 'device' 
-            source_id INTEGER NOT NULL,                     -- The 'id' from either the 'sensors' or 'devices' table that this event came from
-            payload TEXT NOT NULL,                          -- The full JSON data exactly as it was received, e.g.: '{"value": 21.5, "unit": "C"}' 
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP    -- The date and time this event was saved to the database. (Automatically set by SQLite) 
-        );      
-
-        /* Triggers */
+        # Events log table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                source_type TEXT NOT NULL,
+                source_id INTEGER NOT NULL,
+                payload TEXT NOT NULL,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
         
-        CREATE TABLE IF NOT EXISTS triggers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,                             -- User-friendly name for the GUI. e.g.: 'Turn on heater when cold'
-            sensor_id INTEGER NOT NULL,                     -- The 'id' from the 'sensors' table that this rule "listens" to.
-            condition TEXT NOT NULL,                        -- The condition logic, e.g.: 'payload.temperature > 25'
-            device_id INTEGER NOT NULL,                     -- The 'id' from the 'devices' table that this rule controls.
-            action_payload TEXT NOT NULL,                   -- The JSON command to send to device, e.g.: '{"state": "off"}'
-            enabled INTEGER NOT NULL DEFAULT 1,             -- A simple toggle (0=disabled, 1=enabled) so users can turn rules on or off from the GUI 
-            last_triggered TIMESTAMP,                       -- Logs the last time this rule was successfully fired
-            
-            -- Links this rule to a specific sensor
-            FOREIGN KEY (sensor_id) REFERENCES sensors (id),
-            
-            -- Links this rule to a specific device
-            FOREIGN KEY (device_id) REFERENCES devices (id)
-        );
-        """)
+        # Trigger execution log
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS trigger_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                trigger_id INTEGER NOT NULL,
+                executed_at TIMESTAMP NOT NULL,
+                FOREIGN KEY (trigger_id) REFERENCES triggers(id)
+            )
+        ''')
+        
         self.conn.commit()
-
-    def log_event(self, source_type, source_id, payload_json):
+    
+    # ========================================
+    # SENSOR METHODS
+    # ========================================
+    
+    def get_all_sensors(self):
+        """Get all sensors"""
         cursor = self.conn.cursor()
-        cursor.execute("""
-            INSERT INTO events (source_type, source_id, payload)
-            VALUES (?, ?, ?)
-        """, (source_type, source_id, json.dumps(payload_json)))
-        self.conn.commit()
-
-    def get_recent_events(self, limit=50):
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT * FROM events ORDER BY timestamp DESC LIMIT ?", (limit,))
+        cursor.execute("SELECT * FROM sensors")
         return cursor.fetchall()
-
+    
+    def get_sensor_by_id(self, sensor_id):
+        """Get sensor by ID"""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM sensors WHERE id = ?", (sensor_id,))
+        return cursor.fetchone()
+    
     def get_sensor_category(self, sensor_id):
-        cur = self.conn.cursor()
-        cur.execute("SELECT category FROM sensors WHERE id=?", (sensor_id,))
-        row = cur.fetchone()
-        return row[0] if row else "unknown"
-
-    def get_device_category(self, device_id):
-        cur = self.conn.cursor()
-        cur.execute("SELECT category FROM devices WHERE id=?", (device_id,))
-        row = cur.fetchone()
-        return row[0] if row else "unknown"
-
-    def add_trigger(self, name, sensor_id, condition, device_id, action_payload):
+        """Get sensor category by ID"""
         cursor = self.conn.cursor()
-        cursor.execute("""
-            INSERT INTO triggers (name, sensor_id, condition, device_id, action_payload)
-            VALUES (?, ?, ?, ?, ?);
-        """, (name, sensor_id, json.dumps(condition), device_id, json.dumps(action_payload)))
-        trigger_id = cursor.lastrowid
-        self.conn.commit()
-        return trigger_id
-
-    def log_trigger(self, trigger_id, timestamp):
-        cursor = self.conn.cursor()
-        cursor.execute("""
-            UPDATE triggers
-            SET last_triggered= ?
-            WHERE id= ?
-        """, (timestamp, trigger_id))
-        self.conn.commit()
-
-    def delete_trigger(self, trigger_id):
-        cursor = self.conn.cursor()
-        cursor.execute("""
-            DELETE FROM triggers
-            WHERE id= ?
-        """, (trigger_id,))
-        self.conn.commit()
-
-    def get_all_triggers(self):
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT * FROM triggers DESC")
-        return cursor.fetchall()
-
-    def switch_trigger(self, trigger_id, target_state):
-        cursor = self.conn.cursor()
-        cursor.execute("""
-                    UPDATE triggers
-                    SET enabled= ?
-                    WHERE id= ?
-                """, (target_state, trigger_id))
-        self.conn.commit()
-
+        cursor.execute("SELECT category FROM sensors WHERE id = ?", (sensor_id,))
+        result = cursor.fetchone()
+        return result[0] if result else "unknown"
+    
     def get_all_sensor_categories(self):
+        """Get all unique sensor categories"""
         cursor = self.conn.cursor()
-        cursor.execute("""SELECT category FROM sensors;""")
+        cursor.execute("SELECT DISTINCT category FROM sensors")
         return cursor.fetchall()
+    
+    def update_sensor_status(self, sensor_id, payload):
+        """Update sensor's last payload and timestamp"""
+        cursor = self.conn.cursor()
+        
+        # If payload is dict, convert to JSON string
+        if isinstance(payload, dict):
+            payload_str = json.dumps(payload)
+        else:
+            payload_str = payload
+        
+        cursor.execute("""
+            UPDATE sensors 
+            SET last_payload = ?, 
+                last_update = datetime('now') 
+            WHERE id = ?
+        """, (payload_str, sensor_id))
+        
+        self.conn.commit()
+    
+    # ========================================
+    # DEVICE METHODS
+    # ========================================
+    
+    def get_all_devices(self):
+        """Get all devices"""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM devices")
+        return cursor.fetchall()
+    
+    def get_device_by_id(self, device_id):
+        """Get device by ID"""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM devices WHERE id = ?", (device_id,))
+        return cursor.fetchone()
+    
+    def get_device_category(self, device_id):
+        """Get device category by ID"""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT category FROM devices WHERE id = ?", (device_id,))
+        result = cursor.fetchone()
+        return result[0] if result else "unknown"
+    
+    def update_device_status(self, device_id, payload):
+        """Update device's current status and timestamp"""
+        cursor = self.conn.cursor()
+        
+        # If payload is dict, convert to JSON string
+        if isinstance(payload, dict):
+            payload_str = json.dumps(payload)
+        else:
+            payload_str = payload
+        
+        cursor.execute("""
+            UPDATE devices 
+            SET current_status = ?, 
+                last_update = datetime('now') 
+            WHERE id = ?
+        """, (payload_str, device_id))
+        
+        self.conn.commit()
+    
+    # ========================================
+    # TRIGGER/AUTOMATION METHODS
+    # ========================================
+    
+    def get_all_triggers(self):
+        """Get all automation triggers"""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM triggers")
+        return cursor.fetchall()
+    
+    def add_trigger(self, name, sensor_id, condition, device_id, action_payload):
+        """Add new automation trigger"""
+        cursor = self.conn.cursor()
+        
+        # Convert dicts to JSON strings
+        condition_str = json.dumps(condition) if isinstance(condition, dict) else condition
+        action_str = json.dumps(action_payload) if isinstance(action_payload, dict) else action_payload
+        
+        cursor.execute("""
+            INSERT INTO triggers (name, sensor_id, condition, device_id, action_payload, enabled)
+            VALUES (?, ?, ?, ?, ?, 1)
+        """, (name, sensor_id, condition_str, device_id, action_str))
+        
+        self.conn.commit()
+        return cursor.lastrowid
+    
+    def delete_trigger(self, trigger_id):
+        """Delete automation trigger"""
+        cursor = self.conn.cursor()
+        cursor.execute("DELETE FROM triggers WHERE id = ?", (trigger_id,))
+        self.conn.commit()
+    
+    def switch_trigger(self, trigger_id, target_state=None):
+        """Toggle trigger enabled/disabled state"""
+        cursor = self.conn.cursor()
+        
+        if target_state is None:
+            # Toggle
+            cursor.execute("""
+                UPDATE triggers 
+                SET enabled = CASE WHEN enabled = 1 THEN 0 ELSE 1 END 
+                WHERE id = ?
+            """, (trigger_id,))
+        else:
+            # Set specific state
+            cursor.execute("""
+                UPDATE triggers 
+                SET enabled = ? 
+                WHERE id = ?
+            """, (target_state, trigger_id))
+        
+        self.conn.commit()
+    
+    def log_trigger(self, trigger_id, executed_at):
+        """Log trigger execution"""
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            INSERT INTO trigger_logs (trigger_id, executed_at)
+            VALUES (?, ?)
+        """, (trigger_id, executed_at))
+        self.conn.commit()
+    
+    # ========================================
+    # EVENT LOGGING METHODS
+    # ========================================
+    
+    def log_event(self, source_type, source_id, payload):
+        """Log an event (sensor reading or device action)"""
+        cursor = self.conn.cursor()
+        
+        # Convert payload to JSON string if it's a dict
+        if isinstance(payload, dict):
+            payload_str = json.dumps(payload)
+        else:
+            payload_str = payload
+        
+        cursor.execute("""
+            INSERT INTO events (source_type, source_id, payload, timestamp)
+            VALUES (?, ?, ?, datetime('now'))
+        """, (source_type, source_id, payload_str))
+        
+        self.conn.commit()
+    
+    def get_recent_events(self, limit=50):
+        """Get recent events"""
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            SELECT id, source_type, source_id, payload, timestamp
+            FROM events
+            ORDER BY timestamp DESC
+            LIMIT ?
+        """, (limit,))
+        return cursor.fetchall()
+    
+    def get_events_by_source(self, source_type, source_id, limit=20):
+        """Get events for specific sensor or device"""
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            SELECT id, source_type, source_id, payload, timestamp
+            FROM events
+            WHERE source_type = ? AND source_id = ?
+            ORDER BY timestamp DESC
+            LIMIT ?
+        """, (source_type, source_id, limit))
+        return cursor.fetchall()
+    
+    def close(self):
+        """Close database connection"""
+        self.conn.close()

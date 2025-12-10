@@ -22,8 +22,10 @@ class HeatingControlPanel(ttk.Frame):
         super().__init__(parent)
         self.controller = controller
         self.db = Database(db_path=db_path)
+        self.auto_refresh_job = None
         self.setup_ui()
         self.load_data()
+        self.start_auto_refresh()
         
     def setup_ui(self):
         """Setup the heating control interface"""
@@ -33,8 +35,12 @@ class HeatingControlPanel(ttk.Frame):
         header.pack(pady=(0, 15))
         
         # Current Status Frame
-        status_frame = ttk.LabelFrame(self, text="Current Temperature Status", padding=15)
+        status_frame = ttk.LabelFrame(self, text="Current Status", padding=15)
         status_frame.pack(fill="x", pady=(0, 10))
+        
+        # Status labels container
+        self.status_container = ttk.Frame(status_frame)
+        self.status_container.pack(fill="x")
         
         # Temperature Display (Only Heating Sensors)
         self.temp_labels = {}
@@ -49,15 +55,11 @@ class HeatingControlPanel(ttk.Frame):
         heating_sensors = cursor.fetchall()
         
         for sensor_id, sensor_name in heating_sensors:
-            label = ttk.Label(status_frame, 
+            label = ttk.Label(self.status_container, 
                             text=f"{sensor_name}: --°C", 
                             font=("Segoe UI", 11))
             label.pack(anchor="w", pady=2)
             self.temp_labels[sensor_id] = label
-        
-        # Heater Status Frame
-        heater_frame = ttk.LabelFrame(self, text="Heater Status", padding=15)
-        heater_frame.pack(fill="x", pady=(10, 0))
         
         # Heater status labels (Only Heating Devices)
         self.heater_labels = {}
@@ -70,14 +72,14 @@ class HeatingControlPanel(ttk.Frame):
         heating_devices = cursor.fetchall()
         
         for device_id, device_name in heating_devices:
-            label = ttk.Label(heater_frame, 
+            label = ttk.Label(self.status_container, 
                             text=f"{device_name}: OFF", 
                             font=("Segoe UI", 11))
             label.pack(anchor="w", pady=2)
             self.heater_labels[device_id] = label
         
         # Automation Rules Frame (Only Heating Rules)
-        rules_frame = ttk.LabelFrame(self, text="Heating Automation Rules", padding=15)
+        rules_frame = ttk.LabelFrame(self, text="Automation Rules", padding=15)
         rules_frame.pack(fill="both", expand=True, pady=(10, 0))
         
         # Rules Treeview
@@ -109,7 +111,7 @@ class HeatingControlPanel(ttk.Frame):
         ttk.Button(btn_frame, text="⚙️ Toggle Rule", 
                   command=self.toggle_rule).pack(side="left", padx=5)
         
-        ttk.Button(btn_frame, text="➕ Add Heating Rule", 
+        ttk.Button(btn_frame, text="➕ Add Rule", 
                   command=self.show_add_rule_dialog).pack(side="left", padx=5)
         
     def load_data(self):
@@ -126,16 +128,19 @@ class HeatingControlPanel(ttk.Frame):
         sensors = cursor.fetchall()
         
         for sensor_id, name, payload in sensors:
-            if payload and sensor_id in self.temp_labels:
-                try:
-                    data = json.loads(payload)
-                    temp = data.get('temperature', '--')
-                    humidity = data.get('humidity', '--')
-                    self.temp_labels[sensor_id].config(
-                        text=f"{name}: {temp}°C (Humidity: {humidity}%)"
-                    )
-                except:
-                    self.temp_labels[sensor_id].config(text=f"{name}: Error")
+            if sensor_id in self.temp_labels:
+                if payload:
+                    try:
+                        data = json.loads(payload)
+                        temp = data.get('temperature', '--')
+                        humidity = data.get('humidity', '--')
+                        self.temp_labels[sensor_id].config(
+                            text=f"{name}: {temp}°C (Humidity: {humidity}%)"
+                        )
+                    except Exception as e:
+                        self.temp_labels[sensor_id].config(text=f"{name}: Error")
+                else:
+                    self.temp_labels[sensor_id].config(text=f"{name}: No data")
         
         # Load heating devices only
         cursor.execute("""
@@ -147,28 +152,34 @@ class HeatingControlPanel(ttk.Frame):
         devices = cursor.fetchall()
         
         for device_id, name, status in devices:
-            if status and device_id in self.heater_labels:
-                try:
-                    data = json.loads(status)
-                    state = data.get('state', 'unknown').upper()
-                    target = data.get('target_temp', '--')
-                    power = data.get('power', 0)
-                    
-                    status_text = f"{name}: {state}"
-                    if state == "ON":
-                        status_text += f" (Target: {target}°C, Power: {power}W)"
-                    
-                    self.heater_labels[device_id].config(text=status_text)
-                except:
-                    self.heater_labels[device_id].config(text=f"{name}: Error")
+            if device_id in self.heater_labels:
+                if status:
+                    try:
+                        data = json.loads(status)
+                        state = data.get('state', 'unknown').upper()
+                        target = data.get('target_temp', '--')
+                        power = data.get('power', 0)
+                        
+                        status_text = f"{name}: {state}"
+                        if state == "ON":
+                            status_text += f" (Target: {target}°C, Power: {power}W)"
+                        
+                        self.heater_labels[device_id].config(text=status_text)
+                    except Exception as e:
+                        self.heater_labels[device_id].config(text=f"{name}: Error")
+                else:
+                    self.heater_labels[device_id].config(text=f"{name}: No data")
         
         # Load heating automation rules only
         self.rules_tree.delete(*self.rules_tree.get_children())
         
+        # Broader filter to catch all heating-related rules
         cursor.execute("""
             SELECT id, name, enabled 
             FROM triggers 
-            WHERE name LIKE 'Heating:%'
+            WHERE name LIKE '%Room:%' 
+               OR name LIKE '%Heating%'
+               OR name LIKE '%Heat%'
             ORDER BY id
         """)
         triggers = cursor.fetchall()
@@ -178,12 +189,24 @@ class HeatingControlPanel(ttk.Frame):
             self.rules_tree.insert("", "end", values=(name, status), 
                                   tags=(trigger_id,))
     
+    def start_auto_refresh(self):
+        """Start automatic refresh every 3 seconds"""
+        self.load_data()
+        # Schedule next refresh
+        self.auto_refresh_job = self.after(3000, self.start_auto_refresh)
+    
+    def stop_auto_refresh(self):
+        """Stop automatic refresh"""
+        if self.auto_refresh_job:
+            self.after_cancel(self.auto_refresh_job)
+            self.auto_refresh_job = None
+    
     def toggle_rule(self):
         """Toggle selected heating automation rule on/off"""
         selection = self.rules_tree.selection()
         if not selection:
             messagebox.showwarning("No Selection", 
-                                 "Please select a heating rule to toggle.")
+                                 "Please select a rule to toggle.")
             return
         
         item = self.rules_tree.item(selection[0])
@@ -193,7 +216,7 @@ class HeatingControlPanel(ttk.Frame):
         if self.controller:
             self.controller.switch_trigger(trigger_id)
             self.load_data()
-            messagebox.showinfo("Success", "Heating rule status updated!")
+            messagebox.showinfo("Success", "Rule status updated!")
         else:
             messagebox.showerror("Error", "Controller not available")
     
@@ -209,10 +232,10 @@ class HeatingControlPanel(ttk.Frame):
         ttk.Label(dialog, text="Rule Name:").pack(pady=(10, 0))
         name_entry = ttk.Entry(dialog, width=50)
         name_entry.pack(pady=5)
-        name_entry.insert(0, "Heating: My Custom Rule")
+        name_entry.insert(0, "My Custom Heating Rule")
         
         # Sensor Selection (Heating sensors only)
-        ttk.Label(dialog, text="Temperature Sensor (Heating):").pack(pady=(10, 0))
+        ttk.Label(dialog, text="Temperature Sensor:").pack(pady=(10, 0))
         
         cursor = self.db.conn.cursor()
         cursor.execute("""
@@ -294,10 +317,6 @@ class HeatingControlPanel(ttk.Frame):
         def save_rule():
             try:
                 name = name_entry.get()
-                
-                if not name.startswith("Heating:"):
-                    name = "Heating: " + name
-                
                 sensor_id = int(sensor_var.get().split(":")[0])
                 operator = operator_var.get()
                 value = value_entry.get()
@@ -315,14 +334,14 @@ class HeatingControlPanel(ttk.Frame):
                                                device_id, action_payload)
                     self.load_data()
                     dialog.destroy()
-                    messagebox.showinfo("Success", "Heating rule added successfully!")
+                    messagebox.showinfo("Success", "Rule added successfully!")
                 else:
                     messagebox.showerror("Error", "Controller not available")
                 
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to add rule: {e}")
         
-        ttk.Button(dialog, text="💾 Save Heating Rule", 
+        ttk.Button(dialog, text="💾 Save Rule", 
                   command=save_rule).pack(pady=20)
 
 
@@ -338,12 +357,5 @@ if __name__ == "__main__":
     
     panel = HeatingControlPanel(root)
     panel.pack(fill="both", expand=True, padx=20, pady=20)
-    
-    # Auto-refresh every 5 seconds
-    def auto_refresh():
-        panel.load_data()
-        root.after(5000, auto_refresh)
-    
-    root.after(2000, auto_refresh)
     
     root.mainloop()
