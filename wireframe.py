@@ -55,7 +55,7 @@ def start_gui(controller=None):
     
     # Footer
     footer = ttk.Label(root, 
-                      text="v1.0 | Heating System Integration | Made with ❤️ in Python", 
+                      text="v1.0 | Made with ❤️ in Python", 
                       font=("Segoe UI", 9))
     footer.pack(side="bottom", pady=10)
     

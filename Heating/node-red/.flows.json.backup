@@ -1,233 +1,493 @@
 [
-  {
-    "id": "497cf74e328dbb10",
-    "type": "tab",
-    "label": "🔥 Heating System"
-  },
-  {
-    "id": "tls_config",
-    "type": "tls-config",
-    "name": "HiveMQ TLS",
-    "cert": "",
-    "key": "",
-    "ca": "",
-    "certname": "",
-    "keyname": "",
-    "caname": "",
-    "servername": "",
-    "verifyservercert": true,
-    "alpnprotocol": ""
-  },
-  {
-    "id": "mqtt_broker",
-    "type": "mqtt-broker",
-    "name": "HiveMQ Cloud",
-    "broker": "910e146c7f1f4c0fa6799235de0cd0fe.s1.eu.hivemq.cloud",
-    "port": "8883",
-    "tls": "tls_config",
-    "clientid": "NodeRED_Heating",
-    "autoConnect": true,
-    "usetls": true,
-    "protocolVersion": "4",
-    "keepalive": "60",
-    "cleansession": true,
-    "autoUnsubscribe": true,
-    "birthTopic": "",
-    "birthQos": "0",
-    "birthPayload": "",
-    "birthMsg": {},
-    "closeTopic": "",
-    "closeQos": "0",
-    "closePayload": "",
-    "closeMsg": {},
-    "willTopic": "",
-    "willQos": "0",
-    "willPayload": "",
-    "willMsg": {},
-    "userProps": "",
-    "sessionExpiry": ""
-  },
-  {
-    "id": "8655398f7ad64909",
-    "type": "inject",
-    "z": "497cf74e328dbb10",
-    "name": "Auto Temperature (30s) - DISABLED",
-    "props": [
-      {
-        "p": "payload"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": "3",
-    "topic": "",
-    "payload": "",
-    "payloadType": "date",
-    "x": 200,
-    "y": 80,
-    "wires": [[]]
-  },
-  {
-    "id": "6f2ab15586a49089",
-    "type": "function",
-    "z": "497cf74e328dbb10",
-    "name": "Generate Temperature",
-    "func": "// IMPORTANT: Use actual sensor ID from database\nconst HEATING_SENSOR_ID = 100; // Living Room Temperature sensor\n\nconst baseTemp = 20;\nconst variation = Math.random() * 8 - 4;\nconst temperature = +(baseTemp + variation).toFixed(1);\nconst humidity = Math.floor(Math.random() * 30 + 30);\n\nmsg.payload = {\n    sensor_id: HEATING_SENSOR_ID,\n    temperature: temperature,\n    humidity: humidity,\n    unit: \"C\",\n    action: \"send\",\n    timestamp: new Date().toISOString()\n};\n\nnode.status({fill:\"blue\",shape:\"dot\",text:`${temperature}°C`});\n\nreturn msg;",
-    "outputs": 1,
-    "timeout": "",
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 460,
-    "y": 120,
-    "wires": [["8bc4196917df604a", "7aa7d4c0120fbf57"]]
-  },
-  {
-    "id": "8bc4196917df604a",
-    "type": "mqtt out",
-    "z": "497cf74e328dbb10",
-    "name": "→ temperature/get",
-    "topic": "temperature/get",
-    "qos": "1",
-    "retain": "false",
-    "broker": "mqtt_broker",
-    "x": 790,
-    "y": 140,
-    "wires": []
-  },
-  {
-    "id": "7aa7d4c0120fbf57",
-    "type": "debug",
-    "z": "497cf74e328dbb10",
-    "name": "📡 Sensor Output",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "payload",
-    "targetType": "msg",
-    "x": 790,
-    "y": 220,
-    "wires": []
-  },
-  {
-    "id": "7692e62a28ea4188",
-    "type": "inject",
-    "z": "497cf74e328dbb10",
-    "name": "❄️ Cold (17°C)",
-    "props": [
-      {
-        "p": "payload"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": "",
-    "topic": "",
-    "payload": "{\"sensor_id\":100,\"temperature\":17,\"humidity\":45,\"unit\":\"C\",\"action\":\"send\"}",
-    "payloadType": "json",
-    "x": 160,
-    "y": 160,
-    "wires": [["8bc4196917df604a", "7aa7d4c0120fbf57"]]
-  },
-  {
-    "id": "8a3b304aacc7462f",
-    "type": "inject",
-    "z": "497cf74e328dbb10",
-    "name": "🔥 Hot (25°C)",
-    "props": [
-      {
-        "p": "payload"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": "",
-    "topic": "",
-    "payload": "{\"sensor_id\":100,\"temperature\":25,\"humidity\":50,\"unit\":\"C\",\"action\":\"send\"}",
-    "payloadType": "json",
-    "x": 150,
-    "y": 220,
-    "wires": [["8bc4196917df604a", "7aa7d4c0120fbf57"]]
-  },
-  {
-    "id": "d20f0826cc0d1212",
-    "type": "inject",
-    "z": "497cf74e328dbb10",
-    "name": "🌡️ Normal (21°C)",
-    "props": [
-      {
-        "p": "payload"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": "",
-    "topic": "",
-    "payload": "{\"sensor_id\":100,\"temperature\":21,\"humidity\":48,\"unit\":\"C\",\"action\":\"send\"}",
-    "payloadType": "json",
-    "x": 160,
-    "y": 280,
-    "wires": [["8bc4196917df604a", "7aa7d4c0120fbf57"]]
-  },
-  {
-    "id": "ad9fbcb1d9c732ab",
-    "type": "mqtt in",
-    "z": "497cf74e328dbb10",
-    "name": "← temperature/send",
-    "topic": "temperature/send",
-    "qos": "1",
-    "datatype": "json",
-    "broker": "mqtt_broker",
-    "inputs": 0,
-    "x": 170,
-    "y": 360,
-    "wires": [["1fbf17c40e68d64f"]]
-  },
-  {
-    "id": "1fbf17c40e68d64f",
-    "type": "function",
-    "z": "497cf74e328dbb10",
-    "name": "Process Heater Command",
-    "func": "// Receive command from Controller\n// Example: {device_id: 36, state: \"on\", temperature: 22}\n\nconst command = msg.payload;\n\n// Simulate heater response\nconst response = {\n    device_id: command.device_id,\n    state: command.state,\n    target_temp: command.temperature || 20,\n    current_temp: 18.5, // Simulated\n    power: command.state === \"on\" ? 2000 : 0,\n    action: \"status\",\n    timestamp: new Date().toISOString()\n};\n\nmsg.payload = response;\n\nnode.status({\n    fill: command.state === \"on\" ? \"red\" : \"blue\",\n    shape: \"dot\",\n    text: `Device ${command.device_id}: ${command.state.toUpperCase()}`\n});\n\nreturn msg;",
-    "outputs": 1,
-    "x": 430,
-    "y": 360,
-    "wires": [["7f7ee69938b65272", "ec9a06f4b00dc6e1"]]
-  },
-  {
-    "id": "7f7ee69938b65272",
-    "type": "mqtt out",
-    "z": "497cf74e328dbb10",
-    "name": "→ temperature/send",
-    "topic": "temperature/send",
-    "qos": "1",
-    "retain": "false",
-    "broker": "mqtt_broker",
-    "x": 680,
-    "y": 360,
-    "wires": []
-  },
-  {
-    "id": "ec9a06f4b00dc6e1",
-    "type": "debug",
-    "z": "497cf74e328dbb10",
-    "name": "🔥 Heater Status",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": true,
-    "complete": "payload",
-    "targetType": "msg",
-    "statusVal": "payload.state",
-    "statusType": "msg",
-    "x": 690,
-    "y": 440,
-    "wires": []
-  }
+    {
+        "id": "497cf74e328dbb10",
+        "type": "tab",
+        "label": "🔥 Heating System"
+    },
+    {
+        "id": "9e3d56092a111d0b",
+        "type": "tab",
+        "label": "🔥 Heating System"
+    },
+    {
+        "id": "tls_config",
+        "type": "tls-config",
+        "name": "HiveMQ TLS",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "",
+        "servername": "",
+        "verifyservercert": true,
+        "alpnprotocol": ""
+    },
+    {
+        "id": "mqtt_broker",
+        "type": "mqtt-broker",
+        "name": "HiveMQ Cloud",
+        "broker": "910e146c7f1f4c0fa6799235de0cd0fe.s1.eu.hivemq.cloud",
+        "port": "8883",
+        "tls": "tls_config",
+        "clientid": "NodeRED_Heating",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "8655398f7ad64909",
+        "type": "inject",
+        "z": "497cf74e328dbb10",
+        "name": "Auto Temperature (30s) - DISABLED",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "3",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6f2ab15586a49089",
+        "type": "function",
+        "z": "497cf74e328dbb10",
+        "name": "Generate Temperature",
+        "func": "// IMPORTANT: Use actual sensor ID from database\nconst HEATING_SENSOR_ID = 100; // Living Room Temperature sensor\n\nconst baseTemp = 20;\nconst variation = Math.random() * 8 - 4;\nconst temperature = +(baseTemp + variation).toFixed(1);\nconst humidity = Math.floor(Math.random() * 30 + 30);\n\nmsg.payload = {\n    sensor_id: HEATING_SENSOR_ID,\n    temperature: temperature,\n    humidity: humidity,\n    unit: \"C\",\n    action: \"send\",\n    timestamp: new Date().toISOString()\n};\n\nnode.status({fill:\"blue\",shape:\"dot\",text:`${temperature}°C`});\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 120,
+        "wires": [
+            [
+                "8bc4196917df604a",
+                "7aa7d4c0120fbf57"
+            ]
+        ]
+    },
+    {
+        "id": "8bc4196917df604a",
+        "type": "mqtt out",
+        "z": "497cf74e328dbb10",
+        "name": "→ temperature/get",
+        "topic": "temperature/get",
+        "qos": "1",
+        "retain": "false",
+        "broker": "mqtt_broker",
+        "x": 790,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "7aa7d4c0120fbf57",
+        "type": "debug",
+        "z": "497cf74e328dbb10",
+        "name": "📡 Sensor Output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 790,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "7692e62a28ea4188",
+        "type": "inject",
+        "z": "497cf74e328dbb10",
+        "name": "❄️ Cold (17°C)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "",
+        "topic": "",
+        "payload": "{\"sensor_id\":100,\"temperature\":17,\"humidity\":45,\"unit\":\"C\",\"action\":\"send\"}",
+        "payloadType": "json",
+        "x": 160,
+        "y": 160,
+        "wires": [
+            [
+                "8bc4196917df604a",
+                "7aa7d4c0120fbf57"
+            ]
+        ]
+    },
+    {
+        "id": "8a3b304aacc7462f",
+        "type": "inject",
+        "z": "497cf74e328dbb10",
+        "name": "🔥 Hot (25°C)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "",
+        "topic": "",
+        "payload": "{\"sensor_id\":100,\"temperature\":25,\"humidity\":50,\"unit\":\"C\",\"action\":\"send\"}",
+        "payloadType": "json",
+        "x": 150,
+        "y": 220,
+        "wires": [
+            [
+                "8bc4196917df604a",
+                "7aa7d4c0120fbf57"
+            ]
+        ]
+    },
+    {
+        "id": "d20f0826cc0d1212",
+        "type": "inject",
+        "z": "497cf74e328dbb10",
+        "name": "🌡️ Normal (21°C)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "",
+        "topic": "",
+        "payload": "{\"sensor_id\":100,\"temperature\":21,\"humidity\":48,\"unit\":\"C\",\"action\":\"send\"}",
+        "payloadType": "json",
+        "x": 160,
+        "y": 280,
+        "wires": [
+            [
+                "8bc4196917df604a",
+                "7aa7d4c0120fbf57"
+            ]
+        ]
+    },
+    {
+        "id": "ad9fbcb1d9c732ab",
+        "type": "mqtt in",
+        "z": "497cf74e328dbb10",
+        "name": "← temperature/send",
+        "topic": "temperature/send",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker",
+        "inputs": 0,
+        "x": 170,
+        "y": 360,
+        "wires": [
+            [
+                "1fbf17c40e68d64f"
+            ]
+        ]
+    },
+    {
+        "id": "1fbf17c40e68d64f",
+        "type": "function",
+        "z": "497cf74e328dbb10",
+        "name": "Process Heater Command",
+        "func": "// FIXED DEVICE ID - Bedroom Heater\nconst BEDROOM_HEATER_ID = 200;\n\nconst command = msg.payload;\n\n// Only process commands for bedroom heater\nif (command.device_id !== BEDROOM_HEATER_ID) {\n    node.warn(`Ignoring command for device ${command.device_id}, expected ${BEDROOM_HEATER_ID}`);\n    return null;\n}\n\n// Simulate heater response\nconst response = {\n    device_id: BEDROOM_HEATER_ID,\n    state: command.state,\n    target_temp: command.temperature || 20,\n    current_temp: 18.5, // Simulated current temperature\n    power: command.state === \"on\" ? 1500 : 0,  // 1500W for bedroom heater\n    action: \"status\",\n    timestamp: new Date().toISOString()\n};\n\nmsg.payload = response;\n\nnode.status({\n    fill: command.state === \"on\" ? \"red\" : \"blue\",\n    shape: \"dot\",\n    text: `Bedroom Heater: ${command.state.toUpperCase()} → ${command.temperature}°C`\n});\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 360,
+        "wires": [
+            [
+                "7f7ee69938b65272",
+                "ec9a06f4b00dc6e1"
+            ]
+        ]
+    },
+    {
+        "id": "7f7ee69938b65272",
+        "type": "mqtt out",
+        "z": "497cf74e328dbb10",
+        "name": "→ temperature/send",
+        "topic": "temperature/send",
+        "qos": "1",
+        "retain": "false",
+        "broker": "mqtt_broker",
+        "x": 680,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "ec9a06f4b00dc6e1",
+        "type": "debug",
+        "z": "497cf74e328dbb10",
+        "name": "🔥 Heater Status",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload.state",
+        "statusType": "msg",
+        "x": 690,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "0dcd614a28fb3d0c",
+        "type": "inject",
+        "z": "9e3d56092a111d0b",
+        "name": "Auto Temperature (30s) - DISABLED",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "3",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b7d053722dc3d0f9",
+        "type": "function",
+        "z": "9e3d56092a111d0b",
+        "name": "Generate Temperature",
+        "func": "// IMPORTANT: Use actual sensor ID from database\nconst HEATING_SENSOR_ID = 100; // Living Room Temperature sensor\n\nconst baseTemp = 20;\nconst variation = Math.random() * 8 - 4;\nconst temperature = +(baseTemp + variation).toFixed(1);\nconst humidity = Math.floor(Math.random() * 30 + 30);\n\nmsg.payload = {\n    sensor_id: HEATING_SENSOR_ID,\n    temperature: temperature,\n    humidity: humidity,\n    unit: \"C\",\n    action: \"send\",\n    timestamp: new Date().toISOString()\n};\n\nnode.status({fill:\"blue\",shape:\"dot\",text:`${temperature}°C`});\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 120,
+        "wires": [
+            [
+                "d54a3c8e73c90e7d",
+                "e4ef109731654701"
+            ]
+        ]
+    },
+    {
+        "id": "d54a3c8e73c90e7d",
+        "type": "mqtt out",
+        "z": "9e3d56092a111d0b",
+        "name": "→ temperature/get",
+        "topic": "temperature/get",
+        "qos": "1",
+        "retain": "false",
+        "broker": "mqtt_broker",
+        "x": 790,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "e4ef109731654701",
+        "type": "debug",
+        "z": "9e3d56092a111d0b",
+        "name": "📡 Sensor Output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 790,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "7fe1749c571cd82e",
+        "type": "inject",
+        "z": "9e3d56092a111d0b",
+        "name": "❄️ Cold (17°C)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "",
+        "topic": "",
+        "payload": "{\"sensor_id\":100,\"temperature\":17,\"humidity\":45,\"unit\":\"C\",\"action\":\"send\"}",
+        "payloadType": "json",
+        "x": 160,
+        "y": 160,
+        "wires": [
+            [
+                "d54a3c8e73c90e7d",
+                "e4ef109731654701"
+            ]
+        ]
+    },
+    {
+        "id": "8721f6cadfb2713f",
+        "type": "inject",
+        "z": "9e3d56092a111d0b",
+        "name": "🔥 Hot (25°C)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "",
+        "topic": "",
+        "payload": "{\"sensor_id\":100,\"temperature\":25,\"humidity\":50,\"unit\":\"C\",\"action\":\"send\"}",
+        "payloadType": "json",
+        "x": 150,
+        "y": 220,
+        "wires": [
+            [
+                "d54a3c8e73c90e7d",
+                "e4ef109731654701"
+            ]
+        ]
+    },
+    {
+        "id": "ab869b3cd2a8aca8",
+        "type": "inject",
+        "z": "9e3d56092a111d0b",
+        "name": "🌡️ Normal (21°C)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "",
+        "topic": "",
+        "payload": "{\"sensor_id\":100,\"temperature\":21,\"humidity\":48,\"unit\":\"C\",\"action\":\"send\"}",
+        "payloadType": "json",
+        "x": 160,
+        "y": 280,
+        "wires": [
+            [
+                "d54a3c8e73c90e7d",
+                "e4ef109731654701"
+            ]
+        ]
+    },
+    {
+        "id": "92ee2979640d769f",
+        "type": "mqtt in",
+        "z": "9e3d56092a111d0b",
+        "name": "← temperature/send",
+        "topic": "temperature/send",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker",
+        "inputs": 0,
+        "x": 170,
+        "y": 360,
+        "wires": [
+            [
+                "24e366fd302fc5ef"
+            ]
+        ]
+    },
+    {
+        "id": "24e366fd302fc5ef",
+        "type": "function",
+        "z": "9e3d56092a111d0b",
+        "name": "Process Heater Command",
+        "func": "// FIXED DEVICE ID - Bedroom Heater\nconst BEDROOM_HEATER_ID = 200;\n\nconst command = msg.payload;\n\n// Only process commands for bedroom heater\nif (command.device_id !== BEDROOM_HEATER_ID) {\n    node.warn(`Ignoring command for device ${command.device_id}, expected ${BEDROOM_HEATER_ID}`);\n    return null;\n}\n\n// Simulate heater response\nconst response = {\n    device_id: BEDROOM_HEATER_ID,\n    state: command.state,\n    target_temp: command.temperature || 20,\n    current_temp: 18.5, // Simulated current temperature\n    power: command.state === \"on\" ? 1500 : 0,  // 1500W for bedroom heater\n    action: \"status\",\n    timestamp: new Date().toISOString()\n};\n\nmsg.payload = response;\n\nnode.status({\n    fill: command.state === \"on\" ? \"red\" : \"blue\",\n    shape: \"dot\",\n    text: `Bedroom Heater: ${command.state.toUpperCase()} → ${command.temperature}°C`\n});\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 360,
+        "wires": [
+            [
+                "2c4f26c5168f137a",
+                "00647b9d5a448771"
+            ]
+        ]
+    },
+    {
+        "id": "2c4f26c5168f137a",
+        "type": "mqtt out",
+        "z": "9e3d56092a111d0b",
+        "name": "→ temperature/send",
+        "topic": "temperature/send",
+        "qos": "1",
+        "retain": "false",
+        "broker": "mqtt_broker",
+        "x": 680,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "00647b9d5a448771",
+        "type": "debug",
+        "z": "9e3d56092a111d0b",
+        "name": "🔥 Heater Status",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload.state",
+        "statusType": "msg",
+        "x": 690,
+        "y": 440,
+        "wires": []
+    }
 ]

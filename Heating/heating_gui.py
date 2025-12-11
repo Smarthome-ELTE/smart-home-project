@@ -1,6 +1,6 @@
 """
-Heating Control Panel GUI Component
-Displays heating-specific sensors, devices, and automation rules
+Heating Control Panel GUI Component - FIXED VERSION
+Shows ALL heating rules, not just ones with "Bedroom" in the name
 """
 
 import tkinter as tk
@@ -9,7 +9,6 @@ import json
 import sys
 import os
 
-# Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from db.database import Database
@@ -63,7 +62,6 @@ class HeatingControlPanel(ttk.Frame):
                 label.pack(anchor="w", pady=2)
                 self.temp_labels[sensor_id] = label
         else:
-            # Show message if no sensors
             ttk.Label(self.status_container, 
                      text="No heating sensors found",
                      foreground="gray").pack(anchor="w", pady=2)
@@ -91,7 +89,6 @@ class HeatingControlPanel(ttk.Frame):
                 label.pack(anchor="w", pady=2)
                 self.heater_labels[device_id] = label
         else:
-            # Show message if no devices
             ttk.Label(self.status_container, 
                      text="No heating devices found",
                      foreground="gray").pack(anchor="w", pady=2)
@@ -144,6 +141,7 @@ class HeatingControlPanel(ttk.Frame):
             SELECT id, name, last_payload 
             FROM sensors 
             WHERE type = 'DHT22_Heating'
+              AND name LIKE '%Bedroom%'
             ORDER BY id
         """)
         sensors = cursor.fetchall()
@@ -157,7 +155,7 @@ class HeatingControlPanel(ttk.Frame):
                         humidity = data.get('humidity', '--')
                         self.temp_labels[sensor_id].config(
                             text=f"{name}: {temp}°C (Humidity: {humidity}%)",
-                            foreground="#00D9FF"  # Bright cyan for visibility
+                            foreground="#00D9FF"  # Bright cyan
                         )
                     except Exception as e:
                         self.temp_labels[sensor_id].config(
@@ -175,6 +173,7 @@ class HeatingControlPanel(ttk.Frame):
             SELECT id, name, current_status 
             FROM devices 
             WHERE type = 'SmartHeater_v2'
+              AND name LIKE '%Bedroom%'
             ORDER BY id
         """)
         devices = cursor.fetchall()
@@ -191,13 +190,13 @@ class HeatingControlPanel(ttk.Frame):
                         # Format display based on state
                         if state == "ON":
                             status_text = f"{name}: 🔥 ON (Target: {target}°C, Power: {power}W)"
-                            color = "#FF5252"  # Bright red for ON
+                            color = "#FF5252"  # Bright red
                         elif state == "OFF":
                             status_text = f"{name}: ❄️ OFF (Target: {target}°C)"
-                            color = "#64B5F6"  # Light blue for OFF
+                            color = "#64B5F6"  # Light blue
                         else:
                             status_text = f"{name}: {state}"
-                            color = "#FFD740"  # Yellow for unknown
+                            color = "#FFD740"  # Yellow
                         
                         self.heater_labels[device_id].config(
                             text=status_text,
@@ -214,27 +213,29 @@ class HeatingControlPanel(ttk.Frame):
                         foreground="gray"
                     )
         
-        # Load heating automation rules
+        # Load heating automation rules - SHOW ALL RULES!
         self.rules_tree.delete(*self.rules_tree.get_children())
         
-        # Show ONLY bedroom heating rules
+        # FIXED: Show ALL rules with DHT22_Heating sensors (no name filter!)
         cursor.execute("""
-            SELECT id, name, enabled 
-            FROM triggers 
-            WHERE name LIKE '%Bedroom%'
-            ORDER BY id
+            SELECT t.id, t.name, t.enabled 
+            FROM triggers t
+            INNER JOIN sensors s ON t.sensor_id = s.id
+            WHERE s.type = 'DHT22_Heating'
+            ORDER BY t.id
         """)
         triggers = cursor.fetchall()
         
+        print(f"📋 GUI: Loading {len(triggers)} heating rules...")
         for trigger_id, name, enabled in triggers:
             status = "✓ Enabled" if enabled else "✗ Disabled"
             self.rules_tree.insert("", "end", values=(name, status), 
                                   tags=(trigger_id,))
+            print(f"   - {name}: {status}")
     
     def start_auto_refresh(self):
         """Start automatic refresh every 2 seconds"""
         self.load_data()
-        # Schedule next refresh
         self.auto_refresh_job = self.after(2000, self.start_auto_refresh)
     
     def stop_auto_refresh(self):
@@ -254,7 +255,6 @@ class HeatingControlPanel(ttk.Frame):
         item = self.rules_tree.item(selection[0])
         trigger_id = item['tags'][0]
         
-        # Toggle in controller
         if self.controller:
             self.controller.switch_trigger(trigger_id)
             self.load_data()
@@ -274,7 +274,6 @@ class HeatingControlPanel(ttk.Frame):
         trigger_id = item['tags'][0]
         rule_name = item['values'][0]
         
-        # Confirmation dialog
         confirm = messagebox.askyesno(
             "Confirm Delete",
             f"Are you sure you want to delete this rule?\n\n'{rule_name}'\n\nThis action cannot be undone."
@@ -283,7 +282,6 @@ class HeatingControlPanel(ttk.Frame):
         if not confirm:
             return
         
-        # Delete from database
         try:
             cursor = self.db.conn.cursor()
             cursor.execute("DELETE FROM triggers WHERE id = ?", (trigger_id,))
@@ -306,7 +304,8 @@ class HeatingControlPanel(ttk.Frame):
         ttk.Label(dialog, text="Rule Name:").pack(pady=(10, 0))
         name_entry = ttk.Entry(dialog, width=50)
         name_entry.pack(pady=5)
-        name_entry.insert(0, "My Custom Heating Rule")
+        name_entry.insert(0, "New Heating Rule")
+        name_entry.select_range(0, tk.END)  # Select all text for easy editing
         
         # Sensor Selection
         ttk.Label(dialog, text="Temperature Sensor:").pack(pady=(10, 0))
@@ -315,7 +314,6 @@ class HeatingControlPanel(ttk.Frame):
         cursor.execute("""
             SELECT id, name FROM sensors 
             WHERE type = 'DHT22_Heating'
-              AND name LIKE '%Bedroom%'
             ORDER BY id
         """)
         sensors = cursor.fetchall()
@@ -354,7 +352,6 @@ class HeatingControlPanel(ttk.Frame):
         cursor.execute("""
             SELECT id, name FROM devices 
             WHERE type = 'SmartHeater_v2'
-              AND name LIKE '%Bedroom%'
             ORDER BY id
         """)
         devices = cursor.fetchall()
@@ -394,8 +391,8 @@ class HeatingControlPanel(ttk.Frame):
             try:
                 # Validate inputs
                 name = name_entry.get().strip()
-                if not name or name == "My Custom Heating Rule":
-                    messagebox.showerror("Invalid Input", "Please enter a unique rule name!")
+                if not name:
+                    messagebox.showerror("Invalid Input", "Please enter a rule name!")
                     return
                 
                 if not sensor_var.get():
@@ -425,12 +422,16 @@ class HeatingControlPanel(ttk.Frame):
                 condition = {"temperature": f"{operator}{value}"}
                 action_payload = {"state": state, "temperature": int(target_temp)}
                 
-                # Add to controller (this also adds to database)
+                print(f"🆕 Adding rule: {name}")
+                print(f"   Condition: {condition}")
+                print(f"   Action: {action_payload}")
+                
+                # Add to controller
                 if self.controller:
                     self.controller.add_trigger(name, sensor_id, condition, 
                                                device_id, action_payload)
-                    dialog.destroy()  # Close dialog BEFORE showing success
-                    self.load_data()  # Reload data
+                    dialog.destroy()  # Close dialog FIRST
+                    self.load_data()  # Then reload data
                     messagebox.showinfo("Success", f"Rule '{name}' added successfully!")
                 else:
                     messagebox.showerror("Error", "Controller not available")
@@ -450,7 +451,6 @@ if __name__ == "__main__":
     root.title("Heating System Test")
     root.geometry("600x700")
     
-    # Apply theme
     style = ttk.Style()
     style.theme_use("clam")
     
