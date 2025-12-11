@@ -50,6 +50,7 @@ class HeatingControlPanel(ttk.Frame):
         cursor.execute("""
             SELECT id, name FROM sensors 
             WHERE type = 'DHT22_Heating' 
+              AND name LIKE '%Bedroom%'
             ORDER BY id
         """)
         heating_sensors = cursor.fetchall()
@@ -76,6 +77,7 @@ class HeatingControlPanel(ttk.Frame):
         cursor.execute("""
             SELECT id, name FROM devices 
             WHERE type = 'SmartHeater_v2' 
+              AND name LIKE '%Bedroom%'
             ORDER BY id
         """)
         heating_devices = cursor.fetchall()
@@ -130,6 +132,9 @@ class HeatingControlPanel(ttk.Frame):
         ttk.Button(btn_frame, text="➕ Add Rule", 
                   command=self.show_add_rule_dialog).pack(side="left", padx=5)
         
+        ttk.Button(btn_frame, text="🗑️ Delete Rule", 
+                  command=self.delete_rule).pack(side="left", padx=5)
+        
     def load_data(self):
         """Load current heating sensor data and automation rules"""
         cursor = self.db.conn.cursor()
@@ -152,7 +157,7 @@ class HeatingControlPanel(ttk.Frame):
                         humidity = data.get('humidity', '--')
                         self.temp_labels[sensor_id].config(
                             text=f"{name}: {temp}°C (Humidity: {humidity}%)",
-                            foreground="black"
+                            foreground="#00D9FF"  # Bright cyan for visibility
                         )
                     except Exception as e:
                         self.temp_labels[sensor_id].config(
@@ -186,13 +191,13 @@ class HeatingControlPanel(ttk.Frame):
                         # Format display based on state
                         if state == "ON":
                             status_text = f"{name}: 🔥 ON (Target: {target}°C, Power: {power}W)"
-                            color = "#D32F2F"  # Red for ON
+                            color = "#FF5252"  # Bright red for ON
                         elif state == "OFF":
                             status_text = f"{name}: ❄️ OFF (Target: {target}°C)"
-                            color = "#1976D2"  # Blue for OFF
+                            color = "#64B5F6"  # Light blue for OFF
                         else:
                             status_text = f"{name}: {state}"
-                            color = "#666"
+                            color = "#FFD740"  # Yellow for unknown
                         
                         self.heater_labels[device_id].config(
                             text=status_text,
@@ -212,15 +217,11 @@ class HeatingControlPanel(ttk.Frame):
         # Load heating automation rules
         self.rules_tree.delete(*self.rules_tree.get_children())
         
-        # Broader filter to catch all heating-related rules
+        # Show ONLY bedroom heating rules
         cursor.execute("""
             SELECT id, name, enabled 
             FROM triggers 
-            WHERE name LIKE '%Room:%' 
-               OR name LIKE '%Heating%'
-               OR name LIKE '%Heat%'
-               OR name LIKE '%cold%'
-               OR name LIKE '%hot%'
+            WHERE name LIKE '%Bedroom%'
             ORDER BY id
         """)
         triggers = cursor.fetchall()
@@ -261,6 +262,38 @@ class HeatingControlPanel(ttk.Frame):
         else:
             messagebox.showerror("Error", "Controller not available")
     
+    def delete_rule(self):
+        """Delete selected automation rule with confirmation"""
+        selection = self.rules_tree.selection()
+        if not selection:
+            messagebox.showwarning("No Selection", 
+                                 "Please select a rule to delete.")
+            return
+        
+        item = self.rules_tree.item(selection[0])
+        trigger_id = item['tags'][0]
+        rule_name = item['values'][0]
+        
+        # Confirmation dialog
+        confirm = messagebox.askyesno(
+            "Confirm Delete",
+            f"Are you sure you want to delete this rule?\n\n'{rule_name}'\n\nThis action cannot be undone."
+        )
+        
+        if not confirm:
+            return
+        
+        # Delete from database
+        try:
+            cursor = self.db.conn.cursor()
+            cursor.execute("DELETE FROM triggers WHERE id = ?", (trigger_id,))
+            self.db.conn.commit()
+            
+            self.load_data()
+            messagebox.showinfo("Success", f"Rule '{rule_name}' deleted successfully!")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to delete rule: {e}")
+    
     def show_add_rule_dialog(self):
         """Show dialog to add new heating automation rule"""
         dialog = tk.Toplevel(self)
@@ -282,6 +315,7 @@ class HeatingControlPanel(ttk.Frame):
         cursor.execute("""
             SELECT id, name FROM sensors 
             WHERE type = 'DHT22_Heating'
+              AND name LIKE '%Bedroom%'
             ORDER BY id
         """)
         sensors = cursor.fetchall()
@@ -320,6 +354,7 @@ class HeatingControlPanel(ttk.Frame):
         cursor.execute("""
             SELECT id, name FROM devices 
             WHERE type = 'SmartHeater_v2'
+              AND name LIKE '%Bedroom%'
             ORDER BY id
         """)
         devices = cursor.fetchall()
@@ -357,28 +392,51 @@ class HeatingControlPanel(ttk.Frame):
         # Save Button
         def save_rule():
             try:
-                name = name_entry.get()
+                # Validate inputs
+                name = name_entry.get().strip()
+                if not name or name == "My Custom Heating Rule":
+                    messagebox.showerror("Invalid Input", "Please enter a unique rule name!")
+                    return
+                
+                if not sensor_var.get():
+                    messagebox.showerror("Invalid Input", "Please select a sensor!")
+                    return
+                
+                if not device_var.get():
+                    messagebox.showerror("Invalid Input", "Please select a device!")
+                    return
+                
                 sensor_id = int(sensor_var.get().split(":")[0])
                 operator = operator_var.get()
-                value = value_entry.get()
+                value = value_entry.get().strip()
                 device_id = int(device_var.get().split(":")[0])
                 state = state_var.get()
-                target_temp = int(target_entry.get())
+                target_temp = target_entry.get().strip()
+                
+                if not value:
+                    messagebox.showerror("Invalid Input", "Please enter a temperature value!")
+                    return
+                
+                if not target_temp:
+                    messagebox.showerror("Invalid Input", "Please enter a target temperature!")
+                    return
                 
                 # Create condition and action
                 condition = {"temperature": f"{operator}{value}"}
-                action_payload = {"state": state, "temperature": target_temp}
+                action_payload = {"state": state, "temperature": int(target_temp)}
                 
-                # Add to controller
+                # Add to controller (this also adds to database)
                 if self.controller:
                     self.controller.add_trigger(name, sensor_id, condition, 
                                                device_id, action_payload)
-                    self.load_data()
-                    dialog.destroy()
-                    messagebox.showinfo("Success", "Rule added successfully!")
+                    dialog.destroy()  # Close dialog BEFORE showing success
+                    self.load_data()  # Reload data
+                    messagebox.showinfo("Success", f"Rule '{name}' added successfully!")
                 else:
                     messagebox.showerror("Error", "Controller not available")
                 
+            except ValueError as e:
+                messagebox.showerror("Invalid Input", f"Please enter valid numbers: {e}")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to add rule: {e}")
         
