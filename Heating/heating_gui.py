@@ -226,17 +226,20 @@ class HeatingControlPanel(ttk.Frame):
         """)
         triggers = cursor.fetchall()
         
-        print(f"📋 GUI: Loading {len(triggers)} heating rules...")
+        # Only print on first load or when count changes
+        if not hasattr(self, '_last_rule_count') or self._last_rule_count != len(triggers):
+            print(f"📋 GUI: Loaded {len(triggers)} heating rules")
+            self._last_rule_count = len(triggers)
+        
         for trigger_id, name, enabled in triggers:
             status = "✓ Enabled" if enabled else "✗ Disabled"
             self.rules_tree.insert("", "end", values=(name, status), 
                                   tags=(trigger_id,))
-            print(f"   - {name}: {status}")
     
     def start_auto_refresh(self):
-        """Start automatic refresh every 2 seconds"""
+        """Start automatic refresh every 5 seconds"""
         self.load_data()
-        self.auto_refresh_job = self.after(2000, self.start_auto_refresh)
+        self.auto_refresh_job = self.after(5000, self.start_auto_refresh)  # Changed from 2000 to 5000
     
     def stop_auto_refresh(self):
         """Stop automatic refresh"""
