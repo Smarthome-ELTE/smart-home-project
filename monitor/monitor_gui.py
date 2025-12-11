@@ -1,6 +1,7 @@
 """
 Monitor GUI Component - Displays recent MQTT events
 Shows sensor readings and device status updates
+FIXED: Shows current_temp in payload, not all the JSON
 """
 
 import json
@@ -40,8 +41,8 @@ class MonitorGUI(ttk.Frame):
         self.tree.heading("Time", text="Time")
         
         self.tree.column("Type", width=80)
-        self.tree.column("Topic", width=150)  # Reduced to fit
-        self.tree.column("Payload", width=250)  # Increased for payload
+        self.tree.column("Topic", width=150)
+        self.tree.column("Payload", width=250)
         self.tree.column("Time", width=160)
         
         # Scrollbar
@@ -77,27 +78,36 @@ class MonitorGUI(ttk.Frame):
                     payload = payload_str
                     
                 if not isinstance(payload, dict):
-                    print(f"⚠️ Skipping event {event_id}: payload is not a dict.")
                     continue
                 
                 # Determine topic based on source type and category
                 if source_type == 'sensor':
                     category = self.db.get_sensor_category(source_id)
-                    # Sensors publish to /get
                     topic = f"{category}/get"
+                    
+                    # Format payload for sensors: show temp and humidity
+                    temp = payload.get('temperature', '?')
+                    humidity = payload.get('humidity', '?')
+                    payload_display = f"Temp: {temp}°C, Humidity: {humidity}%"
+                    
                 elif source_type == 'device':
                     category = self.db.get_device_category(source_id)
-                    # Devices receive on /send and respond with /status
                     action = payload.get('action', 'status')
                     topic = f"{category}/{action}"
+                    
+                    # Format payload for devices: show state and current_temp (not target!)
+                    state = payload.get('state', '?')
+                    current_temp = payload.get('current_temp', '?')
+                    power = payload.get('power', 0)
+                    
+                    if state == 'on':
+                        payload_display = f"State: ON, Temp: {current_temp}°C, Power: {power}W"
+                    else:
+                        payload_display = f"State: OFF, Temp: {current_temp}°C"
                 else:
                     # Unknown source
                     topic = "unknown/unknown"
-                
-                # Format payload for display
-                payload_display = str(payload)
-                if len(payload_display) > 60:
-                    payload_display = payload_display[:60] + "..."
+                    payload_display = str(payload)[:60]
                 
                 # Format timestamp
                 time_short = timestamp.split('.')[0] if timestamp else ""
@@ -111,10 +121,8 @@ class MonitorGUI(ttk.Frame):
                 ))
                 
             except json.JSONDecodeError:
-                print(f"⚠️ Event {event_id}: Invalid JSON payload")
                 continue
             except Exception as e:
-                print(f"⚠️ Event {event_id}: Error processing - {e}")
                 continue
     
     def start_auto_refresh(self):

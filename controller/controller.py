@@ -1,3 +1,8 @@
+"""
+Controller with MINIMAL console output
+Only logs important events, not every detail
+"""
+
 import datetime
 import paho.mqtt.client as paho
 from paho import mqtt
@@ -39,13 +44,13 @@ class Controller:
     def __init__(self, client_id, protocol, db_path=None):
         self.__db = Database(db_path=db_path)
         self.__triggers = []
-        self.__last_trigger_time = {}  # Track last trigger execution time
+        self.__last_trigger_time = {}
         
         # Create MQTT client
         self.__client = paho.Client(client_id=client_id, protocol=protocol, userdata=None)
         self.__client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
         
-        # Set up callbacks BEFORE connecting
+        # Set up callbacks
         self.__client.on_connect = self._on_connect
         self.__client.on_subscribe = self._on_subscribe
         self.__client.on_publish = self._on_publish
@@ -53,57 +58,40 @@ class Controller:
 
     def _on_connect(self, client, userdata, flags, rc, properties=None):
         """Called when connected to MQTT broker"""
-        print(f"🎮 CONTROLLER: Connected! Result code: {rc}")
+        print(f"✅ CONTROLLER: Connected")
         
         # Subscribe to ALL temperature topics
         self.__client.subscribe("temperature/get", qos=1)
-        print(f"🎮 CONTROLLER: Subscribed to 'temperature/get'")
         
-        # Also subscribe to other categories if they exist
+        # Also subscribe to other categories
         categories = set(map(lambda cat_tuple: cat_tuple[0], self.__db.get_all_sensor_categories()))
         for category in categories:
-            if category != "temperature":  # Already subscribed above
+            if category != "temperature":
                 topic = category + "/get"
                 self.__client.subscribe(topic, qos=1)
-                print(f"🎮 CONTROLLER: Subscribed to '{topic}'")
 
     def _on_subscribe(self, client, userdata, mid, granted_qos, properties=None):
-        """Called when subscription is confirmed"""
-        print(f"🎮 CONTROLLER: Subscription confirmed: {mid} {granted_qos}")
+        """Called when subscription is confirmed - SILENT"""
+        pass
 
     def _on_publish(self, client, userdata, mid, properties=None):
-        """Called when message is published"""
-        print(f"🎮 CONTROLLER: Published mid: {mid}")
+        """Called when message is published - SILENT"""
+        pass
 
     def _on_message(self, client, userdata, msg):
-        """Called when message is received - THIS IS THE CRITICAL FUNCTION"""
-        print(f"\n{'='*70}")
-        print(f"🎮 CONTROLLER: RECEIVED MESSAGE!")
-        print(f"   Topic: {msg.topic}")
-        print(f"   Payload: {msg.payload.decode()}")
-        print(f"{'='*70}")
-        
+        """Called when message is received - MINIMAL LOGGING"""
         try:
             payload = json.loads(msg.payload)
             sensor_id = payload.get('sensor_id', 'unknown')
             temp = payload.get('temperature', '?')
-            print(f"🎮 CONTROLLER: Parsed - Sensor {sensor_id}, Temp: {temp}°C")
         except Exception as e:
-            print(f"🎮 CONTROLLER: Error parsing payload: {e}")
             return
         
         # Get enabled triggers
         enabled_triggers = [tr for tr in self.__triggers if tr["enabled"] > 0]
-        print(f"🎮 CONTROLLER: Checking {len(enabled_triggers)} enabled rules...")
         
         for trigger in enabled_triggers:
-            print(f"\n   🔍 Evaluating: '{trigger['name']}'")
-            print(f"      Sensor ID: {trigger['condition']['sensor_id']}")
-            print(f"      Conditions: {trigger['condition']['conditions']}")
-            
             if is_trigger_valid(trigger["condition"], msg):
-                print(f"   ✅ RULE MATCHED: {trigger['name']}")
-                
                 # Check cooldown (prevent rapid repeated triggers)
                 trigger_id = trigger["id"]
                 current_time = datetime.datetime.now()
@@ -111,10 +99,10 @@ class Controller:
                 if trigger_id in self.__last_trigger_time:
                     time_since_last = (current_time - self.__last_trigger_time[trigger_id]).total_seconds()
                     if time_since_last < 5:  # 5 second cooldown
-                        print(f"   ⏸️  Cooldown active ({time_since_last:.1f}s), skipping")
                         continue
                 
-                print(f"   🔥 EXECUTING ACTIONS...")
+                # LOG ONLY THE ACTION
+                print(f"⚡ RULE TRIGGERED: {trigger['name']}")
                 
                 # Update last trigger time
                 self.__last_trigger_time[trigger_id] = current_time
@@ -124,40 +112,28 @@ class Controller:
                 
                 # Execute actions
                 for action in trigger["actions"]:
-                    print(f"      📤 Publishing to: {action['topic']}")
-                    print(f"         Payload: {json.dumps(action['payload'])}")
-                    
                     self.__client.publish(
                         action["topic"], 
                         json.dumps(action["payload"]), 
                         qos=action["qos"]
                     )
-                    print(f"      ✅ Command published!")
-                    
+                
                 # Only execute first matching trigger
                 break
-            else:
-                print(f"   ❌ Rule '{trigger['name']}' did not match")
 
     def connect(self, host, port, username, password):
         """Connect to MQTT broker"""
-        print(f"🎮 CONTROLLER: Connecting to {host}:{port}...")
         self.__client.username_pw_set(username, password)
         self.__client.connect(host, port)
 
     def start(self):
         """Start the MQTT client loop"""
-        print(f"🎮 CONTROLLER: Starting MQTT loop...")
         self.__client.loop_start()
         
         # Load triggers from database
         self.load_triggers()
         
-        print(f"✅ CONTROLLER: Service Started")
-        print(f"   Loaded {len(self.__triggers)} triggers")
-        for trigger in self.__triggers:
-            status = "✅ ENABLED" if trigger["enabled"] else "❌ DISABLED"
-            print(f"   {status} - {trigger['name']}")
+        print(f"🚀 CONTROLLER: Active with {len([t for t in self.__triggers if t['enabled']])} enabled rules")
 
     def stop(self):
         """Stop the MQTT client loop"""
@@ -172,9 +148,7 @@ class Controller:
         self.__client.publish(topic, payload, qos)
 
     def load_triggers(self):
-        """Load all triggers from database"""
-        print(f"\n🎮 CONTROLLER: Loading triggers from database...")
-        
+        """Load all triggers from database - SILENT"""
         db_triggers = self.__db.get_all_triggers()
         
         for db_trigger in db_triggers:
@@ -211,18 +185,9 @@ class Controller:
             }
             
             self.__triggers.append(trigger)
-            
-            status = "✅ ENABLED" if enabled else "❌ DISABLED"
-            print(f"   {status} | {name}")
-            print(f"      Sensor {sensor_id} ({sensor_category}/get)")
-            print(f"      → Device {device_id} ({device_category}/send)")
-            print(f"      Conditions: {conditions}")
-            print(f"      Action: {action_payload}")
 
     def add_trigger(self, name, sensor_id, conditions, device_id, action_payload):
         """Add new trigger"""
-        print(f"🎮 CONTROLLER: Adding trigger '{name}'...")
-        
         trigger_id = self.__db.add_trigger(name, sensor_id, conditions, device_id, action_payload)
         
         trigger = {
@@ -244,15 +209,12 @@ class Controller:
         }
         self.__triggers.append(trigger)
         
-        print(f"✅ CONTROLLER: Trigger '{name}' added successfully!")
+        print(f"✅ Rule added: {name}")
 
     def delete_trigger(self, trigger_id):
         """Delete trigger"""
         self.__db.delete_trigger(trigger_id)
-        
         self.__triggers = [tr for tr in self.__triggers if tr["id"] != trigger_id]
-        
-        print(f"✅ CONTROLLER: Deleted trigger ID {trigger_id}")
 
     def switch_trigger(self, trigger_id):
         """Toggle trigger enabled/disabled"""
@@ -263,5 +225,5 @@ class Controller:
                 self.__db.switch_trigger(trigger_id, target_state)
                 
                 status = "ENABLED" if target_state else "DISABLED"
-                print(f"✅ CONTROLLER: Trigger '{trigger['name']}' {status}")
+                print(f"✅ Rule '{trigger['name']}': {status}")
                 break
