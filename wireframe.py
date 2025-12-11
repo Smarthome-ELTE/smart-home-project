@@ -1,5 +1,5 @@
 """
-Enhanced Smart Home GUI with Heating System Controls
+Enhanced Smart Home GUI with Heating System Controls and Gas System Controls
 Displays real-time sensor data, device status, and automation rules
 """
 
@@ -7,6 +7,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import json
 from monitor.monitor_gui import MonitorGUI
+from gas.gas_gui import GasControlPanel
 from db.database import Database
 
 
@@ -269,8 +270,8 @@ def start_gui(controller=None):
     """Start the enhanced smart home GUI"""
     # Root Window
     root = tk.Tk()
-    root.title("Smart Home Heating System")
-    root.geometry("1200x700")
+    root.title("Smart Home Heating & Gas System")
+    root.geometry("1400x800")
     root.configure(bg="#1e1e2f")
     
     # Global style
@@ -287,39 +288,78 @@ def start_gui(controller=None):
                    foreground="#ffffff", font=("Segoe UI", 11, "bold"))
     
     # Title
-    title = ttk.Label(root, text="🏠 Smart Home Heating System", 
+    title = ttk.Label(root, text="🏠 Smart Home System - Heating & Gas", 
                      font=("Segoe UI", 20, "bold"))
     title.pack(pady=15)
     
-    # Main container
-    main_frame = ttk.Frame(root)
-    main_frame.pack(padx=20, pady=10, fill="both", expand=True)
+    # Main container with tabs
+    notebook = ttk.Notebook(root)
+    notebook.pack(padx=20, pady=10, fill="both", expand=True)
     
-    # Left Panel - Heating Controls
-    left_panel = ttk.Frame(main_frame, padding=15)
+    # ===== TAB 1: HEATING SYSTEM =====
+    heating_frame = ttk.Frame(notebook)
+    notebook.add(heating_frame, text="🔥 Heating System")
+    
+    # Create heating panel in the tab
+    heating_main = ttk.Frame(heating_frame)
+    heating_main.pack(padx=15, pady=15, fill="both", expand=True)
+    
+    # Left side - Heating Controls
+    left_panel = ttk.Frame(heating_main, padding=15)
     left_panel.pack(side="left", fill="both", expand=True, padx=(0, 10))
     
     heating_panel = HeatingControlPanel(left_panel, controller)
     heating_panel.pack(fill="both", expand=True)
     
-    # Right Panel - Monitor
-    right_panel = ttk.Frame(main_frame, padding=15)
+    # Right side - Monitor
+    right_panel = ttk.Frame(heating_main, padding=15)
     right_panel.pack(side="right", fill="both", expand=True, padx=(10, 0))
     
     monitor_gui = MonitorGUI(right_panel)
     monitor_gui.pack(fill="both", expand=True)
     
-    # Auto-refresh every 5 seconds
+    # ===== TAB 2: GAS SYSTEM =====
+    gas_frame = ttk.Frame(notebook)
+    notebook.add(gas_frame, text="💨 Gas System")
+    
+    # Create gas panel in the tab
+    gas_main = ttk.Frame(gas_frame)
+    gas_main.pack(padx=15, pady=15, fill="both", expand=True)
+    
+    # Left side - Gas Controls
+    gas_left_panel = ttk.Frame(gas_main, padding=15)
+    gas_left_panel.pack(side="left", fill="both", expand=True, padx=(0, 10))
+    
+    gas_panel = GasControlPanel(gas_left_panel, controller)
+    gas_panel.pack(fill="both", expand=True)
+    
+    # Right side - Monitor (reuse same monitor)
+    gas_right_panel = ttk.Frame(gas_main, padding=15)
+    gas_right_panel.pack(side="right", fill="both", expand=True, padx=(10, 0))
+    
+    gas_monitor = MonitorGUI(gas_right_panel)
+    gas_monitor.pack(fill="both", expand=True)
+    
+    # Auto-refresh panels every 5 seconds
     def auto_refresh():
-        heating_panel.load_data()
-        monitor_gui.load_events()
+        try:
+            if heating_panel:
+                heating_panel.load_data()
+            if gas_panel:
+                gas_panel.load_data()
+            if monitor_gui:
+                monitor_gui.load_events()
+            if gas_monitor:
+                gas_monitor.load_events()
+        except:
+            pass
         root.after(5000, auto_refresh)  # Refresh every 5 seconds
     
     root.after(2000, auto_refresh)  # Start after 2 seconds
     
     # Footer
     footer = ttk.Label(root, 
-                      text="v1.0 | Heating System Integration | Made with ❤️ in Python", 
+                      text="v2.0 | Heating & Gas System Integration | Made with ❤️ in Python", 
                       font=("Segoe UI", 9))
     footer.pack(side="bottom", pady=10)
     
