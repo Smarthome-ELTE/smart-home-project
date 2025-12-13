@@ -1,18 +1,34 @@
 [
   {
-    "id": "931db88119518e5e",
-    "type": "tab",
-    "label": "Test Send MQTT Message",
-    "disabled": false,
-    "info": "",
-    "env": []
-  },
-  {
     "id": "593616167e3c2e87",
     "type": "tab",
     "label": "Test Receive MQTT Message",
     "disabled": false,
     "info": "",
+    "env": []
+  },
+  {
+    "id": "eff8856a4a11d3ec",
+    "type": "tab",
+    "label": "Bathroom Water Pressure",
+    "disabled": false,
+    "info": "This flow simulates a water pressure sensor\r\nthat detects the water pressure in the pipe.",
+    "env": []
+  },
+  {
+    "id": "addbb3fa9cd0c4fe",
+    "type": "tab",
+    "label": "Kitchen Water Leak",
+    "disabled": false,
+    "info": "This sensor detects whether there is a water leak in the kitchen",
+    "env": []
+  },
+  {
+    "id": "193dc9b5758c244a",
+    "type": "tab",
+    "label": "Garden Moisture",
+    "disabled": false,
+    "info": "This sensor monitors moiture level in the garden.",
     "env": []
   },
   {
@@ -28,39 +44,6 @@
     "servername": "",
     "verifyservercert": true,
     "alpnprotocol": ""
-  },
-  {
-    "id": "2a98ee67c200799e",
-    "type": "mqtt-broker",
-    "z": "931db88119518e5e",
-    "name": "main",
-    "broker": "${MQTT_HOST}",
-    "port": "${MQTT_PORT}",
-    "tls": "5fbb44d3f6bb029f",
-    "clientid": "water_sensor_1",
-    "autoConnect": true,
-    "usetls": true,
-    "protocolVersion": "5",
-    "keepalive": 60,
-    "cleansession": true,
-    "autoUnsubscribe": true,
-    "birthTopic": "",
-    "birthQos": "0",
-    "birthRetain": "false",
-    "birthPayload": "",
-    "birthMsg": {},
-    "closeTopic": "",
-    "closeQos": "0",
-    "closeRetain": "false",
-    "closePayload": "",
-    "closeMsg": {},
-    "willTopic": "",
-    "willQos": "0",
-    "willRetain": "false",
-    "willPayload": "",
-    "willMsg": {},
-    "userProps": "",
-    "sessionExpiry": ""
   },
   {
     "id": "d85133725914be37",
@@ -96,71 +79,102 @@
     "sessionExpiry": ""
   },
   {
-    "id": "97617058de474131",
-    "type": "inject",
-    "z": "931db88119518e5e",
-    "name": "Send message from sensor",
-    "props": [
-      {
-        "p": "payload"
-      },
-      {
-        "p": "topic",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "water/get",
-    "payload": "{\"device_id\":\"1\",\"water_pressure\":15}",
-    "payloadType": "json",
-    "x": 260,
-    "y": 260,
-    "wires": [
-      [
-        "0a7d05ef1f5c2263"
-      ]
-    ]
-  },
-  {
-    "id": "856fee043c973461",
-    "type": "mqtt out",
-    "z": "931db88119518e5e",
-    "name": "",
-    "topic": "",
-    "qos": "",
-    "retain": "",
-    "respTopic": "",
-    "contentType": "",
+    "id": "93d3c2365790f747",
+    "type": "mqtt-broker",
+    "z": "eff8856a4a11d3ec",
+    "name": "Bathroom Water Pressure Sensor",
+    "broker": "${MQTT_HOST}",
+    "port": "${MQTT_PORT}",
+    "tls": "5fbb44d3f6bb029f",
+    "clientid": "52",
+    "autoConnect": true,
+    "usetls": true,
+    "protocolVersion": "5",
+    "keepalive": 60,
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthRetain": "false",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closeRetain": "false",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willRetain": "false",
+    "willPayload": "",
+    "willMsg": {},
     "userProps": "",
-    "correl": "",
-    "expiry": "",
-    "broker": "2a98ee67c200799e",
-    "x": 790,
-    "y": 260,
-    "wires": []
+    "sessionExpiry": ""
   },
   {
-    "id": "0a7d05ef1f5c2263",
-    "type": "function",
-    "z": "931db88119518e5e",
-    "name": "Randomize data",
-    "func": "console.log(msg.payload);\nmsg.payload.water_pressure = Math.floor(Math.random() * 100);\nconsole.log(msg.payload);\nreturn msg;",
-    "outputs": 1,
-    "timeout": 0,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 560,
-    "y": 260,
-    "wires": [
-      [
-        "856fee043c973461"
-      ]
-    ]
+    "id": "b8ec5684c53726c9",
+    "type": "mqtt-broker",
+    "z": "addbb3fa9cd0c4fe",
+    "name": "Kitchen Water Lean Sensor",
+    "broker": "${MQTT_HOST}",
+    "port": "${MQTT_PORT}",
+    "tls": "5fbb44d3f6bb029f",
+    "clientid": "53",
+    "autoConnect": true,
+    "usetls": true,
+    "protocolVersion": "5",
+    "keepalive": 60,
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthRetain": "false",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closeRetain": "false",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willRetain": "false",
+    "willPayload": "",
+    "willMsg": {},
+    "userProps": "",
+    "sessionExpiry": ""
+  },
+  {
+    "id": "b90cfad4e36d8c4c",
+    "type": "mqtt-broker",
+    "name": "Garden Moisture Sensor",
+    "broker": "${MQTT_HOST}",
+    "port": "${MQTT_PORT}",
+    "tls": "5fbb44d3f6bb029f",
+    "clientid": "54",
+    "autoConnect": true,
+    "usetls": true,
+    "protocolVersion": "5",
+    "keepalive": 60,
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthRetain": "false",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closeRetain": "false",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willRetain": "false",
+    "willPayload": "",
+    "willMsg": {},
+    "userProps": "",
+    "sessionExpiry": ""
   },
   {
     "id": "7cc59b29ccda0471",
@@ -263,5 +277,206 @@
         "a02ea90bd90ed237"
       ]
     ]
+  },
+  {
+    "id": "378c82df0b143a1d",
+    "type": "inject",
+    "z": "eff8856a4a11d3ec",
+    "name": "Generate message payload and topic",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "10",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "water/get",
+    "payload": "{\"device_id\":\"52\",\"water_pressure\":0}",
+    "payloadType": "json",
+    "x": 310,
+    "y": 260,
+    "wires": [
+      [
+        "682a7adf8c3b9144"
+      ]
+    ]
+  },
+  {
+    "id": "682a7adf8c3b9144",
+    "type": "function",
+    "z": "eff8856a4a11d3ec",
+    "name": "Randomize the payload data",
+    "func": "msg.payload.water_pressure = Math.floor(Math.random() * 5);\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 640,
+    "y": 260,
+    "wires": [
+      [
+        "4ae1b917f7004c97"
+      ]
+    ]
+  },
+  {
+    "id": "4ae1b917f7004c97",
+    "type": "mqtt out",
+    "z": "eff8856a4a11d3ec",
+    "name": "",
+    "topic": "",
+    "qos": "",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "93d3c2365790f747",
+    "x": 870,
+    "y": 260,
+    "wires": []
+  },
+  {
+    "id": "65c967706f012c10",
+    "type": "inject",
+    "z": "addbb3fa9cd0c4fe",
+    "name": "Generate message payload and topic",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "15",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "water/get",
+    "payload": "{\"device_id\":\"53\",\"water_detected\":0}",
+    "payloadType": "json",
+    "x": 330,
+    "y": 240,
+    "wires": [
+      [
+        "0dccf48225d87702"
+      ]
+    ]
+  },
+  {
+    "id": "0dccf48225d87702",
+    "type": "function",
+    "z": "addbb3fa9cd0c4fe",
+    "name": "Randomize payload data",
+    "func": "let rand_num = Math.random();\nconsole.log(\"Generated random number: \" + rand_num);\nif (rand_num < 0.75) {\n    msg.payload.water_detected = 0;\n} else {\n    msg.payload.water_detected = 1;\n}\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 650,
+    "y": 240,
+    "wires": [
+      [
+        "94422f0f79baa357"
+      ]
+    ]
+  },
+  {
+    "id": "94422f0f79baa357",
+    "type": "mqtt out",
+    "z": "addbb3fa9cd0c4fe",
+    "name": "",
+    "topic": "",
+    "qos": "",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "b8ec5684c53726c9",
+    "x": 870,
+    "y": 240,
+    "wires": []
+  },
+  {
+    "id": "c842d1d42bceb2aa",
+    "type": "inject",
+    "z": "193dc9b5758c244a",
+    "name": "Generate message payload and topic",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "5",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "water/get",
+    "payload": "{\"device_id\":\"54\",\"moisture_level\":0}",
+    "payloadType": "json",
+    "x": 330,
+    "y": 260,
+    "wires": [
+      [
+        "fb83a91bc942950c"
+      ]
+    ]
+  },
+  {
+    "id": "fb83a91bc942950c",
+    "type": "function",
+    "z": "193dc9b5758c244a",
+    "name": "Randomize payload data",
+    "func": "msg.payload.moisture_level = Math.floor(Math.random() * 100);\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 650,
+    "y": 260,
+    "wires": [
+      [
+        "5d8deb9efa869337"
+      ]
+    ]
+  },
+  {
+    "id": "5d8deb9efa869337",
+    "type": "mqtt out",
+    "z": "193dc9b5758c244a",
+    "name": "",
+    "topic": "",
+    "qos": "",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "b90cfad4e36d8c4c",
+    "x": 870,
+    "y": 260,
+    "wires": []
   }
 ]
