@@ -3,7 +3,7 @@
         "id": "eff8856a4a11d3ec",
         "type": "tab",
         "label": "Bathroom Water Pressure",
-        "disabled": false,
+        "disabled": true,
         "info": "This flow simulates a water pressure sensor\r\nthat detects the water pressure in the pipe.",
         "env": []
     },
@@ -11,7 +11,7 @@
         "id": "addbb3fa9cd0c4fe",
         "type": "tab",
         "label": "Kitchen Water Leak",
-        "disabled": false,
+        "disabled": true,
         "info": "This sensor detects whether there is a water leak in the kitchen",
         "env": []
     },
@@ -280,7 +280,6 @@
         "id": "378c82df0b143a1d",
         "type": "inject",
         "z": "eff8856a4a11d3ec",
-        "d": true,
         "name": "Generate message payload and topic",
         "props": [
             {
@@ -296,7 +295,7 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "water/get",
-        "payload": "{\"device_id\":\"52\",\"water_pressure\":0}",
+        "payload": "{\"sensor_id\":52,\"water_pressure\":0}",
         "payloadType": "json",
         "x": 310,
         "y": 260,
@@ -348,7 +347,6 @@
         "id": "65c967706f012c10",
         "type": "inject",
         "z": "addbb3fa9cd0c4fe",
-        "d": true,
         "name": "Generate message payload and topic",
         "props": [
             {
@@ -359,12 +357,12 @@
                 "vt": "str"
             }
         ],
-        "repeat": "15",
+        "repeat": "",
         "crontab": "",
         "once": false,
         "onceDelay": 0.1,
         "topic": "water/get",
-        "payload": "{\"device_id\":\"53\",\"water_detected\":0}",
+        "payload": "{\"sensor_id\":53,\"water_detected\":0}",
         "payloadType": "json",
         "x": 330,
         "y": 240,
@@ -416,7 +414,6 @@
         "id": "c842d1d42bceb2aa",
         "type": "inject",
         "z": "193dc9b5758c244a",
-        "d": true,
         "name": "Generate message payload and topic",
         "props": [
             {
@@ -427,12 +424,12 @@
                 "vt": "str"
             }
         ],
-        "repeat": "5",
+        "repeat": "20",
         "crontab": "",
         "once": false,
         "onceDelay": 0.1,
         "topic": "water/get",
-        "payload": "{\"device_id\":\"54\",\"moisture_level\":0}",
+        "payload": "{\"sensor_id\":54,\"moisture_level\":0}",
         "payloadType": "json",
         "x": 330,
         "y": 260,

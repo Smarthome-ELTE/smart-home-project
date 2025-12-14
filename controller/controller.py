@@ -33,13 +33,15 @@ class Controller:
         self.__triggers = []
 
         def on_connect(client, userdata, flags, rc, properties=None):
-            print("CONNACK received with code " + str(rc))
+            print(f"CONTROLLER: CONNACK received with code {rc}")
+            client.subscribe("+/get", qos=1)
+            print("CONTROLLER: Subscribed to topic '+/get'")
 
         def on_publish(client, userdata, mid, properties=None):
             print("Published mid: " + str(mid))
 
         def on_subscribe(client, userdata, mid, granted_qos, properties=None):
-            print("Subscribed: " + str(mid) + " " + str(granted_qos))
+            print("Controller Subscribed: " + str(mid) + " " + str(granted_qos))
 
         def on_message(client, userdata, msg):
             print("Received message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
@@ -58,10 +60,6 @@ class Controller:
         self.__client.on_publish = on_publish
         self.__client.on_message = on_message
 
-        categories = set(map(lambda cat_tuple: cat_tuple[0], self.__db.get_all_sensor_categories()))
-        for category in categories:
-            self.__client.subscribe(category + "/get", 1)
-
     def connect(self, host, port, username, password):
         self.__client.username_pw_set(username, password)
         self.__client.connect(host, port)
@@ -69,6 +67,8 @@ class Controller:
     def start(self):
         self.__client.loop_start()
         self.load_triggers()
+        print("Controller started")
+        print("Loaded triggers: " + str(self.__triggers))
 
     def stop(self):
         self.__client.loop_stop()
