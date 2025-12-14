@@ -1,13 +1,5 @@
 [
   {
-    "id": "593616167e3c2e87",
-    "type": "tab",
-    "label": "Test Receive MQTT Message",
-    "disabled": false,
-    "info": "",
-    "env": []
-  },
-  {
     "id": "eff8856a4a11d3ec",
     "type": "tab",
     "label": "Bathroom Water Pressure",
@@ -32,6 +24,30 @@
     "env": []
   },
   {
+    "id": "63231613f27bc499",
+    "type": "tab",
+    "label": "Kitchen Water Valve",
+    "disabled": false,
+    "info": "This flow simulates the smart water valve device.",
+    "env": []
+  },
+  {
+    "id": "32dc9d706441fd90",
+    "type": "tab",
+    "label": "Bathroom Water Valve",
+    "disabled": false,
+    "info": "This flow simulated a water valve in the bathroom that regulates the water pressure.",
+    "env": []
+  },
+  {
+    "id": "e7956537fe6bf330",
+    "type": "tab",
+    "label": "Garden Sprinkler Valve",
+    "disabled": false,
+    "info": "This flow simulates the valve controlling water flow to the sprinklers in the garden.\r\nThe device opens upon the message, stays open for some time, then closes automatically.",
+    "env": []
+  },
+  {
     "id": "5fbb44d3f6bb029f",
     "type": "tls-config",
     "name": "main",
@@ -44,39 +60,6 @@
     "servername": "",
     "verifyservercert": true,
     "alpnprotocol": ""
-  },
-  {
-    "id": "d85133725914be37",
-    "type": "mqtt-broker",
-    "z": "593616167e3c2e87",
-    "name": "Device",
-    "broker": "${MQTT_HOST}",
-    "port": "${MQTT_PORT}",
-    "tls": "5fbb44d3f6bb029f",
-    "clientid": "Device",
-    "autoConnect": true,
-    "usetls": true,
-    "protocolVersion": "5",
-    "keepalive": 60,
-    "cleansession": true,
-    "autoUnsubscribe": true,
-    "birthTopic": "",
-    "birthQos": "0",
-    "birthRetain": "false",
-    "birthPayload": "",
-    "birthMsg": {},
-    "closeTopic": "",
-    "closeQos": "0",
-    "closeRetain": "false",
-    "closePayload": "",
-    "closeMsg": {},
-    "willTopic": "",
-    "willQos": "0",
-    "willRetain": "false",
-    "willPayload": "",
-    "willMsg": {},
-    "userProps": "",
-    "sessionExpiry": ""
   },
   {
     "id": "93d3c2365790f747",
@@ -147,6 +130,7 @@
   {
     "id": "b90cfad4e36d8c4c",
     "type": "mqtt-broker",
+    "z": "193dc9b5758c244a",
     "name": "Garden Moisture Sensor",
     "broker": "${MQTT_HOST}",
     "port": "${MQTT_PORT}",
@@ -177,106 +161,120 @@
     "sessionExpiry": ""
   },
   {
-    "id": "7cc59b29ccda0471",
-    "type": "mqtt in",
-    "z": "593616167e3c2e87",
-    "name": "msg",
-    "topic": "water/send",
-    "qos": "0",
-    "datatype": "json",
-    "broker": "d85133725914be37",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 330,
-    "y": 240,
-    "wires": [
-      [
-        "f6cc373cc4cbdf12",
-        "f757f3e82ad3ae0a"
-      ]
-    ]
-  },
-  {
-    "id": "f6cc373cc4cbdf12",
-    "type": "debug",
-    "z": "593616167e3c2e87",
-    "name": "debug 1",
-    "active": true,
-    "tosidebar": true,
-    "console": true,
-    "tostatus": false,
-    "complete": "true",
-    "targetType": "full",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 550,
-    "y": 240,
-    "wires": []
-  },
-  {
-    "id": "f757f3e82ad3ae0a",
-    "type": "delay",
-    "z": "593616167e3c2e87",
-    "name": "",
-    "pauseType": "delay",
-    "timeout": "10",
-    "timeoutUnits": "seconds",
-    "rate": "1",
-    "nbRateUnits": "1",
-    "rateUnits": "second",
-    "randomFirst": "1",
-    "randomLast": "5",
-    "randomUnits": "seconds",
-    "drop": false,
-    "allowrate": false,
-    "outputs": 1,
-    "x": 540,
-    "y": 360,
-    "wires": [
-      [
-        "4ce89f765758fda2"
-      ]
-    ]
-  },
-  {
-    "id": "a02ea90bd90ed237",
-    "type": "mqtt out",
-    "z": "593616167e3c2e87",
-    "name": "",
-    "topic": "water/get",
-    "qos": "",
-    "retain": "",
-    "respTopic": "",
-    "contentType": "",
+    "id": "436cbb6da97166bd",
+    "type": "mqtt-broker",
+    "z": "63231613f27bc499",
+    "name": "Kitchen Water Valve",
+    "broker": "${MQTT_HOST}",
+    "port": "${MQTT_PORT}",
+    "tls": "",
+    "clientid": "35",
+    "autoConnect": true,
+    "usetls": true,
+    "protocolVersion": "5",
+    "keepalive": 60,
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthRetain": "false",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closeRetain": "false",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willRetain": "false",
+    "willPayload": "",
+    "willMsg": {},
     "userProps": "",
-    "correl": "",
-    "expiry": "",
-    "broker": "d85133725914be37",
-    "x": 960,
-    "y": 360,
-    "wires": []
+    "sessionExpiry": ""
   },
   {
-    "id": "4ce89f765758fda2",
-    "type": "function",
-    "z": "593616167e3c2e87",
-    "name": "function 1",
-    "func": "msg.payload.device = \"received\";\nmsg.topic = \"water/get\";\nreturn msg;",
-    "outputs": 1,
-    "timeout": 0,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 760,
-    "y": 360,
-    "wires": [
-      [
-        "a02ea90bd90ed237"
-      ]
-    ]
+    "id": "3d7c272c1c8ec814",
+    "type": "global-config",
+    "env": [
+      {
+        "name": "KITCHEN_WATER_VALVE_STATE",
+        "value": "0",
+        "type": "num"
+      },
+      {
+        "name": "BATHROOM_WATER_VALVE_STATE",
+        "value": "0",
+        "type": "num"
+      }
+    ],
+    "modules": {}
+  },
+  {
+    "id": "66bb2e5a6432cef6",
+    "type": "mqtt-broker",
+    "z": "32dc9d706441fd90",
+    "name": "Bathroom Water Valve",
+    "broker": "${MQTT_HOST}",
+    "port": "${MQTT_PORT}",
+    "tls": "5fbb44d3f6bb029f",
+    "clientid": "36",
+    "autoConnect": true,
+    "usetls": true,
+    "protocolVersion": "5",
+    "keepalive": 60,
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthRetain": "false",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closeRetain": "false",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willRetain": "false",
+    "willPayload": "",
+    "willMsg": {},
+    "userProps": "",
+    "sessionExpiry": ""
+  },
+  {
+    "id": "57453cf1dcabc181",
+    "type": "mqtt-broker",
+    "z": "e7956537fe6bf330",
+    "name": "Garden Sprinkler Valve",
+    "broker": "${MQTT_HOST}",
+    "port": "${MQTT_PORT}",
+    "tls": "5fbb44d3f6bb029f",
+    "clientid": "37",
+    "autoConnect": true,
+    "usetls": true,
+    "protocolVersion": "5",
+    "keepalive": 60,
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthRetain": "false",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closeRetain": "false",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willRetain": "false",
+    "willPayload": "",
+    "willMsg": {},
+    "userProps": "",
+    "sessionExpiry": ""
   },
   {
     "id": "378c82df0b143a1d",
@@ -478,5 +476,378 @@
     "x": 870,
     "y": 260,
     "wires": []
+  },
+  {
+    "id": "299b033f7a1f04ba",
+    "type": "mqtt in",
+    "z": "63231613f27bc499",
+    "name": "msg",
+    "topic": "water/send",
+    "qos": "0",
+    "datatype": "json",
+    "broker": "436cbb6da97166bd",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 130,
+    "y": 300,
+    "wires": [
+      [
+        "a2348ad5dc8aca56"
+      ]
+    ]
+  },
+  {
+    "id": "5f16489b5da7d7df",
+    "type": "delay",
+    "z": "63231613f27bc499",
+    "name": "Delay to simulate device taking actions",
+    "pauseType": "delay",
+    "timeout": "5",
+    "timeoutUnits": "seconds",
+    "rate": "1",
+    "nbRateUnits": "1",
+    "rateUnits": "second",
+    "randomFirst": "1",
+    "randomLast": "5",
+    "randomUnits": "seconds",
+    "drop": false,
+    "allowrate": false,
+    "outputs": 1,
+    "x": 730,
+    "y": 300,
+    "wires": [
+      [
+        "18a5f7f02bc8f18a"
+      ]
+    ]
+  },
+  {
+    "id": "18a5f7f02bc8f18a",
+    "type": "function",
+    "z": "63231613f27bc499",
+    "name": "Modifying the device's state",
+    "func": "global.set(\"KITCHEN_WATER_VALVE_STATE\", msg.payload.set_state);\n\nconst new_payload = {\n    device_id: 35,\n    current_state: global.get(\"KITCHEN_WATER_VALVE_STATE\")\n};\nmsg.topic = \"water/get\";\nmsg.payload = new_payload;\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1040,
+    "y": 300,
+    "wires": [
+      [
+        "edacbc7f4167a7fc"
+      ]
+    ]
+  },
+  {
+    "id": "edacbc7f4167a7fc",
+    "type": "mqtt out",
+    "z": "63231613f27bc499",
+    "name": "",
+    "topic": "",
+    "qos": "",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "436cbb6da97166bd",
+    "x": 1270,
+    "y": 300,
+    "wires": []
+  },
+  {
+    "id": "a2348ad5dc8aca56",
+    "type": "switch",
+    "z": "63231613f27bc499",
+    "name": "Check if the message is for this device",
+    "property": "payload.device_id",
+    "propertyType": "msg",
+    "rules": [
+      {
+        "t": "eq",
+        "v": "35",
+        "vt": "num"
+      }
+    ],
+    "checkall": "true",
+    "repair": false,
+    "outputs": 1,
+    "x": 370,
+    "y": 300,
+    "wires": [
+      [
+        "5f16489b5da7d7df"
+      ]
+    ]
+  },
+  {
+    "id": "f847aada4b56402b",
+    "type": "mqtt in",
+    "z": "32dc9d706441fd90",
+    "name": "msg",
+    "topic": "water/send",
+    "qos": "0",
+    "datatype": "json",
+    "broker": "66bb2e5a6432cef6",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 150,
+    "y": 340,
+    "wires": [
+      [
+        "b97bb84c9e6377cf"
+      ]
+    ]
+  },
+  {
+    "id": "def61e752e636246",
+    "type": "delay",
+    "z": "32dc9d706441fd90",
+    "name": "Delay to simulate device taking actions",
+    "pauseType": "delay",
+    "timeout": "5",
+    "timeoutUnits": "seconds",
+    "rate": "1",
+    "nbRateUnits": "1",
+    "rateUnits": "second",
+    "randomFirst": "1",
+    "randomLast": "5",
+    "randomUnits": "seconds",
+    "drop": false,
+    "allowrate": false,
+    "outputs": 1,
+    "x": 730,
+    "y": 340,
+    "wires": [
+      [
+        "3ff382b15c5b4fe3"
+      ]
+    ]
+  },
+  {
+    "id": "b97bb84c9e6377cf",
+    "type": "switch",
+    "z": "32dc9d706441fd90",
+    "name": "Check if the message is for this device",
+    "property": "payload.device_id",
+    "propertyType": "msg",
+    "rules": [
+      {
+        "t": "eq",
+        "v": "36",
+        "vt": "str"
+      }
+    ],
+    "checkall": "true",
+    "repair": false,
+    "outputs": 1,
+    "x": 390,
+    "y": 340,
+    "wires": [
+      [
+        "def61e752e636246"
+      ]
+    ]
+  },
+  {
+    "id": "3ff382b15c5b4fe3",
+    "type": "function",
+    "z": "32dc9d706441fd90",
+    "name": "Modifying the device's state",
+    "func": "global.set(\"BATHROOM_WATER_VALVE_STATE\", msg.payload.set_state);\n\nconst new_payload = {\n    device_id: 36,\n    current_state: global.get(\"BATHROOM_WATER_VALVE_STATE\")\n};\nmsg.topic = \"water/get\";\nmsg.payload = new_payload;\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1040,
+    "y": 340,
+    "wires": [
+      [
+        "61ea498e94363678"
+      ]
+    ]
+  },
+  {
+    "id": "61ea498e94363678",
+    "type": "mqtt out",
+    "z": "32dc9d706441fd90",
+    "name": "",
+    "topic": "",
+    "qos": "",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "66bb2e5a6432cef6",
+    "x": 1250,
+    "y": 340,
+    "wires": []
+  },
+  {
+    "id": "d2962623c604cf98",
+    "type": "mqtt in",
+    "z": "e7956537fe6bf330",
+    "name": "msg",
+    "topic": "water/send",
+    "qos": "2",
+    "datatype": "json",
+    "broker": "57453cf1dcabc181",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 90,
+    "y": 220,
+    "wires": [
+      [
+        "153fde0bf7b5c888"
+      ]
+    ]
+  },
+  {
+    "id": "153fde0bf7b5c888",
+    "type": "switch",
+    "z": "e7956537fe6bf330",
+    "name": "Check if the message is for this device",
+    "property": "payload.device_id",
+    "propertyType": "msg",
+    "rules": [
+      {
+        "t": "eq",
+        "v": "37",
+        "vt": "num"
+      }
+    ],
+    "checkall": "true",
+    "repair": false,
+    "outputs": 1,
+    "x": 330,
+    "y": 220,
+    "wires": [
+      [
+        "64dd26b127f090d8"
+      ]
+    ]
+  },
+  {
+    "id": "64dd26b127f090d8",
+    "type": "delay",
+    "z": "e7956537fe6bf330",
+    "name": "Delay to simulate device taking actions",
+    "pauseType": "delay",
+    "timeout": "5",
+    "timeoutUnits": "seconds",
+    "rate": "1",
+    "nbRateUnits": "1",
+    "rateUnits": "second",
+    "randomFirst": "1",
+    "randomLast": "5",
+    "randomUnits": "seconds",
+    "drop": false,
+    "allowrate": false,
+    "outputs": 1,
+    "x": 670,
+    "y": 220,
+    "wires": [
+      [
+        "44274006d1cef4cc"
+      ]
+    ]
+  },
+  {
+    "id": "44274006d1cef4cc",
+    "type": "function",
+    "z": "e7956537fe6bf330",
+    "name": "Modifying the device's state",
+    "func": "global.set(\"GARDEN_WATER_VALVE_STATE\", msg.payload.set_state);\n\nconst new_payload = {\n    device_id: 37,\n    current_state: global.get(\"GARDEN_WATER_VALVE_STATE\")\n};\nmsg.topic = \"water/get\";\nmsg.payload = new_payload;\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 980,
+    "y": 220,
+    "wires": [
+      [
+        "d9c14152fa77b860",
+        "8c52d70fa9d77b38"
+      ]
+    ]
+  },
+  {
+    "id": "d9c14152fa77b860",
+    "type": "mqtt out",
+    "z": "e7956537fe6bf330",
+    "name": "",
+    "topic": "",
+    "qos": "",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "57453cf1dcabc181",
+    "x": 1250,
+    "y": 300,
+    "wires": []
+  },
+  {
+    "id": "8c52d70fa9d77b38",
+    "type": "delay",
+    "z": "e7956537fe6bf330",
+    "name": "Delay to simulate sprinklers working",
+    "pauseType": "delay",
+    "timeout": "5",
+    "timeoutUnits": "seconds",
+    "rate": "1",
+    "nbRateUnits": "1",
+    "rateUnits": "second",
+    "randomFirst": "1",
+    "randomLast": "5",
+    "randomUnits": "seconds",
+    "drop": false,
+    "allowrate": false,
+    "outputs": 1,
+    "x": 680,
+    "y": 380,
+    "wires": [
+      [
+        "53aacae39ebc664a"
+      ]
+    ]
+  },
+  {
+    "id": "53aacae39ebc664a",
+    "type": "function",
+    "z": "e7956537fe6bf330",
+    "name": "Modifying the device's state",
+    "func": "global.set(\"GARDEN_WATER_VALVE_STATE\", 0);\n\nconst new_payload = {\n    device_id: 37,\n    current_state: global.get(\"GARDEN_WATER_VALVE_STATE\")\n};\nmsg.topic = \"water/get\";\nmsg.payload = new_payload;\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 980,
+    "y": 380,
+    "wires": [
+      [
+        "d9c14152fa77b860"
+      ]
+    ]
   }
 ]
