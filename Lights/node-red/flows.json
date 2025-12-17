@@ -1,0 +1,564 @@
+[
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Smart Bulb Flow",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "a189f81d18728d44",
+        "type": "subflow",
+        "name": "MQTT Heating Control",
+        "info": "This subflow is used to publish control commands to the Smart Home system's heaters via MQTT.",
+        "category": "",
+        "in": [
+            {
+                "x": 40,
+                "y": 140,
+                "wires": [
+                    {
+                        "id": "e44d5a71df5c4a56"
+                    }
+                ]
+            }
+        ],
+        "out": [],
+        "env": [
+            {
+                "name": "DEVICE_ID",
+                "type": "num",
+                "value": "1",
+                "ui": {
+                    "label": {
+                        "0": "H",
+                        "1": "e",
+                        "2": "a",
+                        "3": "t",
+                        "4": "e",
+                        "5": "r",
+                        "6": " ",
+                        "7": "D",
+                        "8": "e",
+                        "9": "v",
+                        "10": "i",
+                        "11": "c",
+                        "12": "e",
+                        "13": " ",
+                        "14": "I",
+                        "15": "D"
+                    },
+                    "type": "text"
+                }
+            },
+            {
+                "name": "STATE",
+                "type": "str",
+                "value": "on",
+                "ui": {
+                    "label": {
+                        "0": "S",
+                        "1": "t",
+                        "2": "a",
+                        "3": "t",
+                        "4": "e",
+                        "5": " ",
+                        "6": "(",
+                        "7": "o",
+                        "8": "n",
+                        "9": "/",
+                        "10": "o",
+                        "11": "f",
+                        "12": "f",
+                        "13": ")"
+                    },
+                    "type": "select",
+                    "opts": {
+                        "opts": [
+                            {
+                                "label": "ON",
+                                "value": "on"
+                            },
+                            {
+                                "label": "OFF",
+                                "value": "off"
+                            }
+                        ]
+                    }
+                }
+            }
+        ],
+        "meta": {},
+        "color": "#DDAA99",
+        "icon": "font-awesome/fa-fire",
+        "status": {
+            "x": 460,
+            "y": 140,
+            "wires": []
+        }
+    },
+    {
+        "id": "7431b860b9f7cf96",
+        "type": "mqtt-broker",
+        "z": "a189f81d18728d44",
+        "name": "",
+        "broker": "910e146c7f1f4c0fa6799235de0cd0fe.s1.eu.hivemq.cloud",
+        "port": "8883",
+        "tls": "",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "e8b90ec968138406",
+        "type": "mqtt-broker",
+        "name": "Server",
+        "broker": "910e146c7f1f4c0fa6799235de0cd0fe.s1.eu.hivemq.cloud",
+        "port": "8883",
+        "tls": "",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "4a3082d80fe1892c",
+        "type": "ui_tab",
+        "name": "Home",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "ab3ca0bcf4cd796b",
+        "type": "ui_base",
+        "theme": {
+            "name": "theme-light",
+            "lightTheme": {
+                "default": "#0094CE",
+                "baseColor": "#0094CE",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": true,
+                "reset": false
+            },
+            "darkTheme": {
+                "default": "#097479",
+                "baseColor": "#097479",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": false
+            },
+            "customTheme": {
+                "name": "Untitled Theme 1",
+                "default": "#4B7930",
+                "baseColor": "#4B7930",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+            },
+            "themeState": {
+                "base-color": {
+                    "default": "#0094CE",
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-titlebar-backgroundColor": {
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-backgroundColor": {
+                    "value": "#fafafa",
+                    "edited": false
+                },
+                "page-sidebar-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-textColor": {
+                    "value": "#1bbfff",
+                    "edited": false
+                },
+                "group-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "widget-textColor": {
+                    "value": "#111111",
+                    "edited": false
+                },
+                "widget-backgroundColor": {
+                    "value": "#0094ce",
+                    "edited": false
+                },
+                "widget-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "base-font": {
+                    "value": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+                }
+            },
+            "angularTheme": {
+                "primary": "indigo",
+                "accents": "blue",
+                "warn": "red",
+                "background": "grey",
+                "palette": "light"
+            }
+        },
+        "site": {
+            "name": "Node-RED Dashboard",
+            "hideToolbar": "false",
+            "allowSwipe": "false",
+            "lockMenu": "false",
+            "allowTempTheme": "true",
+            "dateFormat": "DD/MM/YYYY",
+            "sizes": {
+                "sx": 48,
+                "sy": 48,
+                "gx": 6,
+                "gy": 6,
+                "cx": 6,
+                "cy": 6,
+                "px": 0,
+                "py": 0
+            }
+        }
+    },
+    {
+        "id": "b5f01487b98bf1e4",
+        "type": "ui_group",
+        "name": "Dashboard",
+        "tab": "4a3082d80fe1892c",
+        "order": 1,
+        "disp": true,
+        "width": 6,
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "e44d5a71df5c4a56",
+        "type": "function",
+        "z": "a189f81d18728d44",
+        "name": "Construct Payload",
+        "func": "const deviceId = env.get(\"DEVICE_ID\");\nconst state = env.get(\"STATE\");\nconst targetTemp = env.get(\"TARGET_TEMP\");\n\nmsg.topic = \"temperature/send\";\n\n// Start with the required device_id and state\nlet payload = {\n    \"device_id\": parseInt(deviceId),\n    \"state\": state\n};\n\n// Only add 'temperature' if the state is explicitly 'on'\nif (state === \"on\") {\n    payload.temperature = parseInt(targetTemp);\n}\n\n// Ensure the payload is a JSON string before sending via MQTT\nmsg.payload = JSON.stringify(payload);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 230,
+        "y": 140,
+        "wires": [
+            [
+                "a9437ff86e8fa134"
+            ]
+        ]
+    },
+    {
+        "id": "a9437ff86e8fa134",
+        "type": "mqtt out",
+        "z": "a189f81d18728d44",
+        "name": "MQTT Out: temperature/send",
+        "topic": "temperature/send",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "7431b860b9f7cf96",
+        "x": 700,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "ba991c629688e378",
+        "type": "mqtt in",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "topic": "light/send",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "e8b90ec968138406",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 80,
+        "y": 820,
+        "wires": [
+            [
+                "6a3b12b3ddd1ee21"
+            ]
+        ]
+    },
+    {
+        "id": "6a3b12b3ddd1ee21",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "Monitor Device Command",
+        "func": "// In Function Node\nvar command = msg.payload;\nvar deviceId = command.device_id;\nvar state = command.state;\nvar brightness = command.brightness;\nvar hue = command.hue || flow.get('latest_hue') || 0;\nvar saturation = command.saturation || flow.get('latest_saturation') || 0;\n\n// Logic to control the simulated light (e.g., update a dashboard gauge/text)\nif (deviceId == 10) {\n    msg.payload = `Bulb State: ${state.toUpperCase()}, Brightness: ${brightness}%, Hue: ${hue}, Saturation: ${saturation}`;\n    return msg;\n}\n\nreturn null; // Ignore other device commands",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 820,
+        "wires": [
+            [
+                "db068edfd2c73cdb"
+            ]
+        ]
+    },
+    {
+        "id": "db068edfd2c73cdb",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 660,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "73191bca406ec52a",
+        "type": "ui_slider",
+        "z": "f6f2187d.f17ca8",
+        "name": "Ambient Light Slider",
+        "label": "Brightness Slider",
+        "tooltip": "",
+        "group": "b5f01487b98bf1e4",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "outs": "all",
+        "topic": "topic",
+        "topicType": "msg",
+        "min": 0,
+        "max": "100",
+        "step": 1,
+        "className": "",
+        "x": 120,
+        "y": 640,
+        "wires": [
+            [
+                "c74d99a75933b263"
+            ]
+        ]
+    },
+    {
+        "id": "c74d99a75933b263",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "Format Ambient Data",
+        "func": "let brightness_value = msg.payload;\n\n// 2. Retrieve the latest Hue and Saturation from context\n// Set default values if not yet set\nlet hue = flow.get('latest_hue') || 0; \nlet saturation = flow.get('latest_sat') || 0;\n\n// 3. Construct the combined payload\nmsg.payload = JSON.stringify({ \n    \"sensor_id\": 14, \n    \"brightness\": brightness_value,\n    \"hue\": hue,\n    \"saturation\": saturation \n});\n\n// 4. Send the combined message to the MQTT Out node\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 640,
+        "wires": [
+            [
+                "577d51ce3034208e"
+            ]
+        ]
+    },
+    {
+        "id": "0e56d7f96615ba87",
+        "type": "ui_switch",
+        "z": "f6f2187d.f17ca8",
+        "name": "Motions Slider",
+        "label": "Motion Detected",
+        "tooltip": "",
+        "group": "b5f01487b98bf1e4",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "onvalue": "1",
+        "onvalueType": "num",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "0",
+        "offvalueType": "num",
+        "officon": "",
+        "offcolor": "",
+        "animate": false,
+        "className": "",
+        "x": 100,
+        "y": 760,
+        "wires": [
+            [
+                "2aedd0aeb34b66de"
+            ]
+        ]
+    },
+    {
+        "id": "2aedd0aeb34b66de",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "Format Motion",
+        "func": "let detected = msg.payload ? 1 : 0; msg.payload = JSON.stringify({ \n    \"sensor_id\": 15,\n    \"motion_detected\": detected\n     }); \nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 760,
+        "wires": [
+            [
+                "aa38d1e1126ddcf4"
+            ]
+        ]
+    },
+    {
+        "id": "aa38d1e1126ddcf4",
+        "type": "mqtt out",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "topic": "light/get",
+        "qos": "1",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "e8b90ec968138406",
+        "x": 660,
+        "y": 760,
+        "wires": []
+    },
+    {
+        "id": "577d51ce3034208e",
+        "type": "mqtt out",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "topic": "light/get",
+        "qos": "1",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "e8b90ec968138406",
+        "x": 660,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "8fd8d5706d781eaa",
+        "type": "ui_colour_picker",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "label": "",
+        "group": "b5f01487b98bf1e4",
+        "format": "hsl",
+        "outformat": "object",
+        "showSwatch": true,
+        "showPicker": false,
+        "showValue": false,
+        "showHue": false,
+        "showAlpha": false,
+        "showLightness": true,
+        "square": "false",
+        "dynOutput": "false",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "topic": "topic",
+        "topicType": "msg",
+        "className": "",
+        "x": 90,
+        "y": 700,
+        "wires": [
+            [
+                "5e0527751d85269e"
+            ]
+        ]
+    },
+    {
+        "id": "5e0527751d85269e",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "Set Hue / Saturation",
+        "func": "let hue = Math.round(msg.payload.h);\nlet saturation = Math.round(msg.payload.s);\n\nflow.set('latest_hue', hue);\n\nflow.set('latest_sat', saturation);\n\n\nnode.warn(`[Context Stored] HUE: ${hue}, SATURATION: ${saturation}`);\n\n// 4. End the flow (Crucial: do not send a message object!)\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 700,
+        "wires": [
+            []
+        ]
+    }
+]
